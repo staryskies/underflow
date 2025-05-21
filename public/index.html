@@ -124,6 +124,21 @@
             backdrop-filter: blur(10px);
         }
         
+        #shop {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(10, 25, 47, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            color: var(--neon-blue);
+            max-width: 300px;
+            border: 2px solid var(--blue-primary);
+            box-shadow: 0 0 20px rgba(0, 168, 255, 0.2);
+            font-family: 'Orbitron', sans-serif;
+            backdrop-filter: blur(10px);
+        }
+
         .game-room {
             position: absolute;
             width: 120px;
@@ -214,6 +229,86 @@
         .walking {
             animation: walk 0.4s steps(4) infinite;
         }
+
+        .crate {
+            margin: 10px 0;
+            padding: 15px;
+            background: rgba(0, 168, 255, 0.1);
+            border-radius: 8px;
+            border: 1px solid var(--blue-primary);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .crate:hover {
+            background: rgba(0, 168, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .crate-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .crate-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--neon-blue);
+        }
+
+        .crate-price {
+            color: var(--blue-light);
+            font-weight: bold;
+        }
+
+        .crate-prizes {
+            font-size: 0.9em;
+            color: var(--blue-secondary);
+            margin: 5px 0;
+        }
+
+        .crate .open-button {
+            background: var(--blue-primary);
+            color: var(--bg-dark);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .crate .open-button:hover {
+            background: var(--blue-light);
+            transform: scale(1.05);
+        }
+
+        .crate .open-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Sprite sheet explanation */
+        .sprite-info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(10, 25, 47, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            color: var(--neon-blue);
+            max-width: 300px;
+            border: 2px solid var(--blue-primary);
+            box-shadow: 0 0 20px rgba(0, 168, 255, 0.2);
+            font-family: 'Orbitron', sans-serif;
+            backdrop-filter: blur(10px);
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -231,10 +326,52 @@
             <div id="leaderboard"></div>
         </div>
         
-        <!-- Inventory -->
-        <div id="inventory">
-            <h3>Inventory</h3>
-            <div id="inventoryItems"></div>
+        <!-- Crates -->
+        <div id="shop">
+            <h3>Prize Crates</h3>
+            <div class="crate">
+                <div class="crate-header">
+                    <span class="crate-title">3D Printed Collection</span>
+                    <span class="crate-price">500 coins</span>
+                </div>
+                <div class="crate-prizes">
+                    Possible prizes: Mini figures, Keychains, Desk decorations
+                </div>
+                <button class="open-button" onclick="openCrate('3dPrinted')">Open Crate</button>
+            </div>
+            <div class="crate">
+                <div class="crate-header">
+                    <span class="crate-title">Sticker Pack</span>
+                    <span class="crate-price">300 coins</span>
+                </div>
+                <div class="crate-prizes">
+                    Possible prizes: Game-themed stickers, Character stickers, Logo stickers
+                </div>
+                <button class="open-button" onclick="openCrate('stickers')">Open Crate</button>
+            </div>
+            <div class="crate">
+                <div class="crate-header">
+                    <span class="crate-title">Stationery Set</span>
+                    <span class="crate-price">400 coins</span>
+                </div>
+                <div class="crate-prizes">
+                    Possible prizes: Custom pens, Pencils, Notebooks
+                </div>
+                <button class="open-button" onclick="openCrate('stationery')">Open Crate</button>
+            </div>
+        </div>
+
+        <!-- Sprite Sheet Info -->
+        <div class="sprite-info">
+            <h3>Sprite Sheet Guide</h3>
+            <p>The sprite sheet (person_sprite_sheet.png) is 256px wide and 64px high, containing 4 frames of animation:</p>
+            <ul>
+                <li>Frame 1: 0px to 64px</li>
+                <li>Frame 2: 64px to 128px</li>
+                <li>Frame 3: 128px to 192px</li>
+                <li>Frame 4: 192px to 256px</li>
+            </ul>
+            <p>The animation cycles through these frames when walking.</p>
         </div>
     </div>
 
@@ -244,7 +381,8 @@
         let player = null;
         let gameState = {
             players: new Map(),
-            chests: new Map()
+            chests: new Map(),
+            coins: 0
         };
         let isMoving = false;
         let lastDirection = 'right';
@@ -254,12 +392,50 @@
             const name = prompt('Enter your name:') || 'Player';
             player = {
                 name,
-                position: { x: 400, y: 300 }
+                position: { x: 400, y: 300 },
+                coins: 0,
+                inventory: []
             };
             socket.emit('playerJoin', { name });
         }
 
-        // Movement handling
+        // Crate functions
+        function openCrate(crateId) {
+            const prices = {
+                '3dPrinted': 500,
+                'stickers': 300,
+                'stationery': 400
+            };
+
+            if (player.coins >= prices[crateId]) {
+                const animation = document.getElementById('chestAnimation');
+                animation.style.display = 'flex';
+                animation.innerHTML = '🎲';
+                animation.classList.add('spinning');
+                
+                setTimeout(() => {
+                    socket.emit('openCrate', { crateId });
+                    player.coins -= prices[crateId];
+                    updateCrates();
+                    animation.classList.remove('spinning');
+                    animation.style.display = 'none';
+                }, 2000);
+            } else {
+                alert('Not enough coins!');
+            }
+        }
+
+        function updateCrates() {
+            const crates = document.querySelectorAll('.crate');
+            crates.forEach(crate => {
+                const price = parseInt(crate.querySelector('.crate-price').textContent);
+                const button = crate.querySelector('.open-button');
+                button.disabled = player.coins < price;
+                button.style.opacity = player.coins < price ? '0.5' : '1';
+            });
+        }
+
+        // Movement handling with sprite animation
         document.addEventListener('keydown', (e) => {
             if (!player) return;
             
@@ -307,20 +483,6 @@
             playerElement.style.top = `${player.position.y}px`;
         }
 
-        // Chest interaction
-        function openChest(chestId) {
-            const animation = document.getElementById('chestAnimation');
-            animation.style.display = 'flex';
-            animation.innerHTML = '🎲';
-            animation.classList.add('spinning');
-            
-            setTimeout(() => {
-                socket.emit('openChest', chestId);
-                animation.classList.remove('spinning');
-                animation.style.display = 'none';
-            }, 2000);
-        }
-
         // Socket event handlers
         socket.on('gameState', (state) => {
             gameState = state;
@@ -355,6 +517,16 @@
                 });
                 leaderboardElement.appendChild(gameScores);
             });
+        });
+
+        socket.on('crateOpened', ({ prize }) => {
+            player.inventory.push(prize);
+            alert(`You won: ${prize}!`);
+        });
+
+        socket.on('coinsEarned', (amount) => {
+            player.coins += amount;
+            updateCrates();
         });
 
         function updateGameState() {
