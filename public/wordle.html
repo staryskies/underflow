@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Wordle</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:wght@400;700&display=swap');
+
+        :root {
+            --gold: #FFD700;
+            --gold-light: #FFE55C;
+            --gold-dark: #B8860B;
+            --bg-dark: #1a1a1a;
+            --bg-darker: #0a0a0a;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
+            font-family: 'Playfair Display', serif;
+            color: var(--gold);
+        }
+        
+        .game-container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 20px;
+            border: 3px solid var(--gold);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+        }
+        
+        h1 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold-light);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+        
+        .board {
+            display: grid;
+            grid-template-rows: repeat(6, 60px);
+            gap: 10px;
+            margin: 20px auto;
+            background: rgba(255, 215, 0, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid var(--gold);
+        }
+        
+        .row {
+            display: grid;
+            grid-template-columns: repeat(5, 60px);
+            gap: 10px;
+        }
+        
+        .cell {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--gold);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .cell.correct {
+            background: linear-gradient(135deg, #538d4e 0%, #2d4a2a 100%);
+            border-color: #6ba368;
+            color: var(--gold-light);
+        }
+        
+        .cell.present {
+            background: linear-gradient(135deg, #b59f3b 0%, #7a6b28 100%);
+            border-color: #d4b94e;
+            color: var(--gold-light);
+        }
+        
+        .cell.absent {
+            background: rgba(0, 0, 0, 0.9);
+            border-color: var(--gold-dark);
+            color: var(--gold-dark);
+        }
+        
+        .keyboard {
+            display: grid;
+            grid-template-rows: repeat(3, 60px);
+            gap: 10px;
+            margin: 20px auto;
+            max-width: 500px;
+            background: rgba(255, 215, 0, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid var(--gold);
+        }
+        
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .key {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--gold);
+            border-radius: 8px;
+            color: var(--gold);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0 15px;
+            min-width: 40px;
+            font-family: 'Cinzel', serif;
+            transition: all 0.3s ease;
+        }
+        
+        .key:hover {
+            background: rgba(255, 215, 0, 0.1);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+        
+        .key.wide {
+            min-width: 80px;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            color: var(--bg-darker);
+        }
+        
+        .message {
+            font-size: 24px;
+            margin: 20px 0;
+            min-height: 36px;
+            color: var(--gold-light);
+            font-family: 'Cinzel', serif;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+        
+        .restart {
+            padding: 12px 25px;
+            font-size: 18px;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            border: none;
+            color: var(--bg-darker);
+            cursor: pointer;
+            border-radius: 8px;
+            font-family: 'Cinzel', serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+            margin-top: 20px;
+        }
+        
+        .restart:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Number Wordle</h1>
+        <div class="message" id="message">Guess the 5-digit number!</div>
+        <div class="board" id="board"></div>
+        <div class="keyboard" id="keyboard"></div>
+        <button class="restart" onclick="restartGame()">New Game</button>
+    </div>
+
+    <script>
+        const DIGITS = '0123456789';
+        const WORD_LENGTH = 5;
+        const MAX_ATTEMPTS = 6;
+        
+        let targetNumber = '';
+        let currentRow = 0;
+        let gameOver = false;
+        
+        function generateTargetNumber() {
+            let number = '';
+            for (let i = 0; i < WORD_LENGTH; i++) {
+                number += DIGITS[Math.floor(Math.random() * DIGITS.length)];
+            }
+            return number;
+        }
+        
+        function createBoard() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            
+            for (let i = 0; i < MAX_ATTEMPTS; i++) {
+                const row = document.createElement('div');
+                row.className = 'row';
+                
+                for (let j = 0; j < WORD_LENGTH; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    row.appendChild(cell);
+                }
+                
+                board.appendChild(row);
+            }
+        }
+        
+        function createKeyboard() {
+            const keyboard = document.getElementById('keyboard');
+            keyboard.innerHTML = '';
+            
+            // First row: 1-4
+            const row1 = document.createElement('div');
+            row1.className = 'keyboard-row';
+            for (let i = 1; i <= 4; i++) {
+                row1.appendChild(createKey(i.toString()));
+            }
+            keyboard.appendChild(row1);
+            
+            // Second row: 5-8
+            const row2 = document.createElement('div');
+            row2.className = 'keyboard-row';
+            for (let i = 5; i <= 8; i++) {
+                row2.appendChild(createKey(i.toString()));
+            }
+            keyboard.appendChild(row2);
+            
+            // Third row: 9, 0, Enter, Backspace
+            const row3 = document.createElement('div');
+            row3.className = 'keyboard-row';
+            row3.appendChild(createKey('9'));
+            row3.appendChild(createKey('0'));
+            row3.appendChild(createKey('Enter', 'wide'));
+            row3.appendChild(createKey('Backspace', 'wide'));
+            keyboard.appendChild(row3);
+        }
+        
+        function createKey(value, className = '') {
+            const key = document.createElement('button');
+            key.className = `key ${className}`;
+            key.textContent = value;
+            key.addEventListener('click', () => handleKeyPress(value));
+            return key;
+        }
+        
+        function handleKeyPress(key) {
+            if (gameOver) return;
+            
+            const currentCells = document.querySelectorAll(`.row:nth-child(${currentRow + 1}) .cell`);
+            
+            if (key === 'Backspace') {
+                const filledCells = Array.from(currentCells).filter(cell => cell.textContent !== '');
+                if (filledCells.length > 0) {
+                    filledCells[filledCells.length - 1].textContent = '';
+                }
+            } else if (key === 'Enter') {
+                const guess = Array.from(currentCells).map(cell => cell.textContent).join('');
+                if (guess.length === WORD_LENGTH) {
+                    checkGuess(guess);
+                } else {
+                    showMessage('Not enough digits!');
+                }
+            } else if (DIGITS.includes(key)) {
+                const emptyCell = Array.from(currentCells).find(cell => cell.textContent === '');
+                if (emptyCell) {
+                    emptyCell.textContent = key;
+                }
+            }
+        }
+        
+        function checkGuess(guess) {
+            const cells = document.querySelectorAll(`.row:nth-child(${currentRow + 1}) .cell`);
+            const result = new Array(WORD_LENGTH).fill('absent');
+            const targetArray = targetNumber.split('');
+            const guessArray = guess.split('');
+            
+            // Check for correct digits
+            for (let i = 0; i < WORD_LENGTH; i++) {
+                if (guessArray[i] === targetArray[i]) {
+                    result[i] = 'correct';
+                    targetArray[i] = null;
+                }
+            }
+            
+            // Check for present digits
+            for (let i = 0; i < WORD_LENGTH; i++) {
+                if (result[i] === 'absent') {
+                    const index = targetArray.indexOf(guessArray[i]);
+                    if (index !== -1) {
+                        result[i] = 'present';
+                        targetArray[index] = null;
+                    }
+                }
+            }
+            
+            // Update cell colors
+            cells.forEach((cell, i) => {
+                cell.classList.add(result[i]);
+            });
+            
+            // Update keyboard colors
+            guessArray.forEach((digit, i) => {
+                const key = document.querySelector(`.key[textContent="${digit}"]`);
+                if (key) {
+                    key.classList.add(result[i]);
+                }
+            });
+            
+            if (guess === targetNumber) {
+                showMessage('You won!');
+                gameOver = true;
+            } else if (currentRow === MAX_ATTEMPTS - 1) {
+                showMessage(`Game over! The number was ${targetNumber}`);
+                gameOver = true;
+            } else {
+                currentRow++;
+            }
+        }
+        
+        function showMessage(text) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+        }
+        
+        function restartGame() {
+            targetNumber = generateTargetNumber();
+            currentRow = 0;
+            gameOver = false;
+            createBoard();
+            showMessage('Guess the 5-digit number!');
+            
+            // Reset keyboard colors
+            document.querySelectorAll('.key').forEach(key => {
+                key.classList.remove('correct', 'present', 'absent');
+            });
+        }
+        
+        // Initialize the game
+        createBoard();
+        createKeyboard();
+        restartGame();
+        
+        // Add keyboard event listener
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === 'Backspace' || DIGITS.includes(e.key)) {
+                handleKeyPress(e.key);
+            }
+        });
+    </script>
+</body>
+</html> 

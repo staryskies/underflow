@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Hub</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:wght@400;700&display=swap');
+
+        :root {
+            --gold: #FFD700;
+            --gold-light: #FFE55C;
+            --gold-dark: #B8860B;
+            --bg-dark: #1a1a1a;
+            --bg-darker: #0a0a0a;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Playfair Display', serif;
+            background: var(--bg-darker);
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
+            overflow: hidden;
+        }
+
+        #gameContainer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h20v20H0z" fill="none"/><path d="M0 0h1v1H0zM19 19h1v1h-1z" fill="%23FFD700" fill-opacity="0.1"/></svg>');
+            pointer-events: none;
+        }
+
+        #player {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle at center, var(--gold-light) 0%, var(--gold) 50%, var(--gold-dark) 100%);
+            border-radius: 50%;
+            transition: all 0.1s ease;
+            box-shadow: 0 0 20px var(--gold);
+            border: 2px solid var(--gold-light);
+        }
+
+        .chest {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+            border: 2px solid var(--gold-light);
+            transition: transform 0.2s ease;
+        }
+
+        .chest:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+        }
+
+        .chest.common { 
+            background: linear-gradient(135deg, #808080 0%, #404040 100%);
+            border-color: #A0A0A0;
+        }
+        .chest.rare { 
+            background: linear-gradient(135deg, #4169E1 0%, #1E3A8A 100%);
+            border-color: #6495ED;
+        }
+        .chest.epic { 
+            background: linear-gradient(135deg, #9932CC 0%, #4B0082 100%);
+            border-color: #BA55D3;
+        }
+        .chest.legendary { 
+            background: linear-gradient(135deg, #FF4500 0%, #8B0000 100%);
+            border-color: #FF6347;
+        }
+        
+        #gameMenu {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            color: var(--gold);
+            border: 2px solid var(--gold);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+            font-family: 'Cinzel', serif;
+        }
+        
+        #inventory {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            color: var(--gold);
+            max-width: 300px;
+            border: 2px solid var(--gold);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+            font-family: 'Cinzel', serif;
+        }
+        
+        .game-room {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--gold);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold);
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            font-size: 1.2em;
+            text-align: center;
+            padding: 10px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .game-room:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+            background: rgba(0, 0, 0, 0.9);
+        }
+        
+        #chestAnimation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            background: rgba(0, 0, 0, 0.95);
+            border-radius: 20px;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: var(--gold);
+            font-size: 48px;
+            border: 3px solid var(--gold);
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+        }
+        
+        .spinning {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        h3 {
+            color: var(--gold-light);
+            margin-top: 0;
+            font-family: 'Cinzel', serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 2px solid var(--gold);
+            padding-bottom: 10px;
+        }
+
+        #leaderboard div {
+            margin: 10px 0;
+            padding: 5px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        #inventoryItems div {
+            margin: 5px 0;
+            padding: 5px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 5px;
+            border-left: 3px solid var(--gold);
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="player"></div>
+        <div id="chestAnimation"></div>
+        
+        <!-- Game Rooms -->
+        <div class="game-room" style="top: 100px; left: 100px;" data-game="tictactoe">Tic Tac Toe</div>
+        <div class="game-room" style="top: 100px; right: 100px;" data-game="wordle">Number Wordle</div>
+        
+        <!-- Menu -->
+        <div id="gameMenu">
+            <h3>Leaderboard</h3>
+            <div id="leaderboard"></div>
+        </div>
+        
+        <!-- Inventory -->
+        <div id="inventory">
+            <h3>Inventory</h3>
+            <div id="inventoryItems"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let player = null;
+        let gameState = {
+            players: new Map(),
+            chests: new Map()
+        };
+
+        // Initialize player
+        function initPlayer() {
+            const name = prompt('Enter your name:') || 'Player';
+            player = {
+                name,
+                position: { x: 400, y: 300 }
+            };
+            socket.emit('playerJoin', { name });
+        }
+
+        // Movement handling
+        document.addEventListener('keydown', (e) => {
+            if (!player) return;
+            
+            const speed = 10;
+            switch(e.key) {
+                case 'ArrowUp':
+                    player.position.y -= speed;
+                    break;
+                case 'ArrowDown':
+                    player.position.y += speed;
+                    break;
+                case 'ArrowLeft':
+                    player.position.x -= speed;
+                    break;
+                case 'ArrowRight':
+                    player.position.x += speed;
+                    break;
+            }
+            
+            socket.emit('playerMove', player.position);
+            updatePlayerPosition();
+        });
+
+        function updatePlayerPosition() {
+            const playerElement = document.getElementById('player');
+            playerElement.style.left = `${player.position.x}px`;
+            playerElement.style.top = `${player.position.y}px`;
+        }
+
+        // Chest interaction
+        function openChest(chestId) {
+            const animation = document.getElementById('chestAnimation');
+            animation.style.display = 'flex';
+            animation.innerHTML = '🎲';
+            animation.classList.add('spinning');
+            
+            setTimeout(() => {
+                socket.emit('openChest', chestId);
+                animation.classList.remove('spinning');
+                animation.style.display = 'none';
+            }, 2000);
+        }
+
+        // Socket event handlers
+        socket.on('gameState', (state) => {
+            gameState = state;
+            updateGameState();
+        });
+
+        socket.on('playerMoved', ({ id, position }) => {
+            if (gameState.players.has(id)) {
+                gameState.players.get(id).position = position;
+                updateGameState();
+            }
+        });
+
+        socket.on('chestOpened', ({ playerId, item }) => {
+            if (playerId === socket.id) {
+                const inventory = document.getElementById('inventoryItems');
+                const itemElement = document.createElement('div');
+                itemElement.textContent = item;
+                inventory.appendChild(itemElement);
+            }
+        });
+
+        socket.on('leaderboardUpdate', (leaderboard) => {
+            const leaderboardElement = document.getElementById('leaderboard');
+            leaderboardElement.innerHTML = '';
+            
+            Object.entries(leaderboard).forEach(([game, scores]) => {
+                const gameScores = document.createElement('div');
+                gameScores.innerHTML = `<h4>${game}</h4>`;
+                scores.forEach(score => {
+                    gameScores.innerHTML += `<div>${score.playerName}: ${score.score}</div>`;
+                });
+                leaderboardElement.appendChild(gameScores);
+            });
+        });
+
+        function updateGameState() {
+            // Update chests
+            const container = document.getElementById('gameContainer');
+            const existingChests = container.querySelectorAll('.chest');
+            existingChests.forEach(chest => chest.remove());
+            
+            gameState.chests.forEach((chest, id) => {
+                const chestElement = document.createElement('div');
+                chestElement.className = `chest ${chest.type}`;
+                chestElement.style.left = `${chest.position.x}px`;
+                chestElement.style.top = `${chest.position.y}px`;
+                chestElement.innerHTML = '🎁';
+                chestElement.onclick = () => openChest(id);
+                container.appendChild(chestElement);
+            });
+        }
+
+        // Game room click handlers
+        document.querySelectorAll('.game-room').forEach(room => {
+            room.addEventListener('click', () => {
+                const game = room.dataset.game;
+                // Implement game loading logic here
+                alert(`Loading ${game}...`);
+            });
+        });
+
+        // Initialize the game
+        initPlayer();
+    </script>
+</body>
+</html> 
