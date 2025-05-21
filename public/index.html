@@ -5,20 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Hub</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;700&display=swap');
 
         :root {
-            --gold: #FFD700;
-            --gold-light: #FFE55C;
-            --gold-dark: #B8860B;
-            --bg-dark: #1a1a1a;
-            --bg-darker: #0a0a0a;
+            --blue-primary: #00a8ff;
+            --blue-secondary: #0097e6;
+            --blue-dark: #192a56;
+            --blue-light: #4cd137;
+            --neon-blue: #18dcff;
+            --bg-dark: #0a192f;
+            --bg-darker: #050d1a;
         }
 
         body {
             margin: 0;
             overflow: hidden;
-            font-family: 'Playfair Display', serif;
+            font-family: 'Rajdhani', sans-serif;
             background: var(--bg-darker);
         }
 
@@ -37,40 +39,43 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h20v20H0z" fill="none"/><path d="M0 0h1v1H0zM19 19h1v1h-1z" fill="%23FFD700" fill-opacity="0.1"/></svg>');
+            background: 
+                linear-gradient(90deg, var(--neon-blue) 1px, transparent 1px) 0 0 / 50px 50px,
+                linear-gradient(0deg, var(--neon-blue) 1px, transparent 1px) 0 0 / 50px 50px;
+            opacity: 0.1;
             pointer-events: none;
         }
 
         #player {
             position: absolute;
-            width: 40px;
-            height: 40px;
-            background: radial-gradient(circle at center, var(--gold-light) 0%, var(--gold) 50%, var(--gold-dark) 100%);
-            border-radius: 50%;
+            width: 64px;
+            height: 64px;
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF0WlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNy4yLWMwMDAgNzkuMWI2NWE3OWI0LCAyMDIyLzA2LzEzLTIyOjAxOjAxICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdEV2dD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlRXZlbnQjIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iIHhtbG5zOnBob3Rvc2hvcD0iaHR0cDovL25zLmFkb2JlLmNvbS9waG90b3Nob3AvMS4wLyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgMjQuMCAoTWFjaW50b3NoKSIgeG1wOkNyZWF0ZURhdGU9IjIwMjQtMDItMTVUMTU6NDc6NDctMDU6MDAiIHhtcDpNZXRhZGF0YURhdGU9IjIwMjQtMDItMTVUMTU6NDc6NDctMDU6MDAiIHhtcDpNb2RpZnlEYXRlPSIyMDI0LTAyLTE1VDE1OjQ3OjQ3LTA1OjAwIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjY5ZDE3ZjM1LTY5ZDAtNDI0ZC1hMzM1LTY5ZDBlZjM1NjlkMCIgeG1wTU06RG9jdW1lbnRJRD0iYWRvYmU6ZG9jaWQ6cGhvdG9zaG9wOjY5ZDE3ZjM1LTY5ZDAtNDI0ZC1hMzM1LTY5ZDBlZjM1NjlkMCIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ4bXAuZGlkOjY5ZDE3ZjM1LTY5ZDAtNDI0ZC1hMzM1LTY5ZDBlZjM1NjlkMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjY5ZDE3ZjM1LTY5ZDAtNDI0ZC1hMzM1LTY5ZDBlZjM1NjlkMCIgc3RFdnQ6d2hlbj0iMjAyNC0wMi0xNVQxNTo0Nzo0Ny0wNTowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIDI0LjAgKE1hY2ludG9zaCkiLz4gPC9yZGY6U2VxPiA8L3htcE1NOkhpc3Rvcnk+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+');
+            background-size: 256px 64px;
+            background-position: 0 0;
             transition: all 0.1s ease;
-            box-shadow: 0 0 20px var(--gold);
-            border: 2px solid var(--gold-light);
+            image-rendering: pixelated;
         }
 
         .chest {
             position: absolute;
             width: 60px;
             height: 60px;
-            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            background: linear-gradient(135deg, var(--blue-primary) 0%, var(--blue-dark) 100%);
             border-radius: 10px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 32px;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-            border: 2px solid var(--gold-light);
+            box-shadow: 0 0 15px rgba(0, 168, 255, 0.3);
+            border: 2px solid var(--neon-blue);
             transition: transform 0.2s ease;
         }
 
         .chest:hover {
             transform: scale(1.1);
-            box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+            box-shadow: 0 0 25px rgba(0, 168, 255, 0.5);
         }
 
         .chest.common { 
@@ -78,69 +83,72 @@
             border-color: #A0A0A0;
         }
         .chest.rare { 
-            background: linear-gradient(135deg, #4169E1 0%, #1E3A8A 100%);
-            border-color: #6495ED;
+            background: linear-gradient(135deg, var(--blue-primary) 0%, var(--blue-dark) 100%);
+            border-color: var(--neon-blue);
         }
         .chest.epic { 
             background: linear-gradient(135deg, #9932CC 0%, #4B0082 100%);
             border-color: #BA55D3;
         }
         .chest.legendary { 
-            background: linear-gradient(135deg, #FF4500 0%, #8B0000 100%);
-            border-color: #FF6347;
+            background: linear-gradient(135deg, var(--blue-light) 0%, #2ecc71 100%);
+            border-color: #4cd137;
         }
         
         #gameMenu {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(10, 25, 47, 0.9);
             padding: 20px;
             border-radius: 15px;
-            color: var(--gold);
-            border: 2px solid var(--gold);
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
-            font-family: 'Cinzel', serif;
+            color: var(--neon-blue);
+            border: 2px solid var(--blue-primary);
+            box-shadow: 0 0 20px rgba(0, 168, 255, 0.2);
+            font-family: 'Orbitron', sans-serif;
+            backdrop-filter: blur(10px);
         }
         
         #inventory {
             position: fixed;
             bottom: 20px;
             left: 20px;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(10, 25, 47, 0.9);
             padding: 20px;
             border-radius: 15px;
-            color: var(--gold);
+            color: var(--neon-blue);
             max-width: 300px;
-            border: 2px solid var(--gold);
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
-            font-family: 'Cinzel', serif;
+            border: 2px solid var(--blue-primary);
+            box-shadow: 0 0 20px rgba(0, 168, 255, 0.2);
+            font-family: 'Orbitron', sans-serif;
+            backdrop-filter: blur(10px);
         }
         
         .game-room {
             position: absolute;
             width: 120px;
             height: 120px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid var(--gold);
+            background: rgba(10, 25, 47, 0.9);
+            border: 2px solid var(--blue-primary);
             border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--gold);
+            color: var(--neon-blue);
             cursor: pointer;
-            font-family: 'Cinzel', serif;
+            font-family: 'Orbitron', sans-serif;
             font-size: 1.2em;
             text-align: center;
             padding: 10px;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+            box-shadow: 0 0 20px rgba(0, 168, 255, 0.2);
             transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
         }
 
         .game-room:hover {
             transform: scale(1.1);
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
-            background: rgba(0, 0, 0, 0.9);
+            box-shadow: 0 0 30px rgba(0, 168, 255, 0.4);
+            background: rgba(10, 25, 47, 0.95);
         }
         
         #chestAnimation {
@@ -150,15 +158,16 @@
             transform: translate(-50%, -50%);
             width: 300px;
             height: 300px;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(10, 25, 47, 0.95);
             border-radius: 20px;
             display: none;
             justify-content: center;
             align-items: center;
-            color: var(--gold);
+            color: var(--neon-blue);
             font-size: 48px;
-            border: 3px solid var(--gold);
-            box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+            border: 3px solid var(--blue-primary);
+            box-shadow: 0 0 50px rgba(0, 168, 255, 0.3);
+            backdrop-filter: blur(10px);
         }
         
         .spinning {
@@ -171,27 +180,39 @@
         }
 
         h3 {
-            color: var(--gold-light);
+            color: var(--neon-blue);
             margin-top: 0;
-            font-family: 'Cinzel', serif;
+            font-family: 'Orbitron', sans-serif;
             text-transform: uppercase;
             letter-spacing: 2px;
-            border-bottom: 2px solid var(--gold);
+            border-bottom: 2px solid var(--blue-primary);
             padding-bottom: 10px;
         }
 
         #leaderboard div {
             margin: 10px 0;
             padding: 5px;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+            border-bottom: 1px solid rgba(0, 168, 255, 0.2);
         }
 
         #inventoryItems div {
             margin: 5px 0;
             padding: 5px;
-            background: rgba(255, 215, 0, 0.1);
+            background: rgba(0, 168, 255, 0.1);
             border-radius: 5px;
-            border-left: 3px solid var(--gold);
+            border-left: 3px solid var(--blue-primary);
+        }
+
+        @keyframes walk {
+            0% { background-position: 0 0; }
+            25% { background-position: -64px 0; }
+            50% { background-position: -128px 0; }
+            75% { background-position: -192px 0; }
+            100% { background-position: 0 0; }
+        }
+
+        .walking {
+            animation: walk 0.4s steps(4) infinite;
         }
     </style>
 </head>
@@ -225,6 +246,8 @@
             players: new Map(),
             chests: new Map()
         };
+        let isMoving = false;
+        let lastDirection = 'right';
 
         // Initialize player
         function initPlayer() {
@@ -241,23 +264,41 @@
             if (!player) return;
             
             const speed = 10;
+            const playerElement = document.getElementById('player');
+            isMoving = true;
+            
             switch(e.key) {
                 case 'ArrowUp':
                     player.position.y -= speed;
+                    lastDirection = 'up';
                     break;
                 case 'ArrowDown':
                     player.position.y += speed;
+                    lastDirection = 'down';
                     break;
                 case 'ArrowLeft':
                     player.position.x -= speed;
+                    lastDirection = 'left';
+                    playerElement.style.transform = 'scaleX(-1)';
                     break;
                 case 'ArrowRight':
                     player.position.x += speed;
+                    lastDirection = 'right';
+                    playerElement.style.transform = 'scaleX(1)';
                     break;
             }
             
+            playerElement.classList.add('walking');
             socket.emit('playerMove', player.position);
             updatePlayerPosition();
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                const playerElement = document.getElementById('player');
+                playerElement.classList.remove('walking');
+                isMoving = false;
+            }
         });
 
         function updatePlayerPosition() {
