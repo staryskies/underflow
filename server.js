@@ -14,9 +14,10 @@ const pool = new Pool({
 async function initDatabase() {
     try {
         // Drop tables in reverse order to avoid foreign key constraints
-        await pool.query('DROP TABLE IF EXISTS user_prizes');
-        await pool.query('DROP TABLE IF EXISTS prizes');
-        await pool.query('DROP TABLE IF EXISTS users');
+        await pool.query('DROP TABLE IF EXISTS redemptions CASCADE');
+        await pool.query('DROP TABLE IF EXISTS user_prizes CASCADE');
+        await pool.query('DROP TABLE IF EXISTS prizes CASCADE');
+        await pool.query('DROP TABLE IF EXISTS users CASCADE');
 
         // Create users table
         await pool.query(`
@@ -49,6 +50,16 @@ async function initDatabase() {
                 username VARCHAR(50) REFERENCES users(username),
                 prize_id INTEGER REFERENCES prizes(prize_id),
                 acquired_at BIGINT NOT NULL
+            );
+        `);
+
+        // Create redemptions table
+        await pool.query(`
+            CREATE TABLE redemptions (
+                redemption_id SERIAL PRIMARY KEY,
+                username VARCHAR(50) REFERENCES users(username),
+                prize_id INTEGER REFERENCES prizes(prize_id),
+                redemption_date BIGINT NOT NULL
             );
         `);
 
@@ -232,6 +243,10 @@ app.post('/api/buy-prize', async (req, res) => {
         );
         await pool.query(
             'INSERT INTO user_prizes (username, prize_id, acquired_at) VALUES ($1, $2, $3)',
+            [username, prizeId, Date.now()]
+        );
+        await pool.query(
+            'INSERT INTO redemptions (username, prize_id, redemption_date) VALUES ($1, $2, $3)',
             [username, prizeId, Date.now()]
         );
         await pool.query('COMMIT');
