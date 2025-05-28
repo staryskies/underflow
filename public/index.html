@@ -36,7 +36,6 @@
       padding: 20px;
     }
 
-    /* Auth Section */
     #authSection {
       display: flex;
       flex-direction: column;
@@ -111,7 +110,6 @@
       background: #E09900;
     }
 
-    /* Main Hub */
     #gameHub {
       opacity: 0;
       animation: fadeIn 0.5s ease forwards;
@@ -206,7 +204,6 @@
       display: inline-block;
     }
 
-    /* Game Frame */
     .game-frame {
       width: 100%;
       height: 80vh;
@@ -215,7 +212,6 @@
       box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     }
 
-    /* Shop Modal */
     .modal {
       position: fixed;
       top: 0;
@@ -345,7 +341,6 @@
 </head>
 <body>
   <div class="container">
-    <!-- Auth Section -->
     <div id="authSection">
       <h1>🎮 Memory Games Hub</h1>
       <div class="auth-form">
@@ -356,7 +351,6 @@
       </div>
     </div>
 
-    <!-- Main Game Hub -->
     <div id="mainSection" class="hidden">
       <div class="top-bar">
         <div class="user-info">
@@ -375,23 +369,21 @@
       </div>
 
       <div class="games-grid" id="gamesGrid">
-        <div class="game-card" onclick="loadGame('memory-mole')">
+        <div class="game-card" onclick="loadGame('memory-mole.html')">
           <h3>🐭 Memory Mole</h3>
           <p>Test your sequence memory skills</p>
           <span class="cost">1 play</span>
         </div>
-        <div class="game-card" onclick="loadGame('number-wordle')">
+        <div class="game-card" onclick="loadGame('number-wordle.html')">
           <h3>🔢 Number Wordle</h3>
           <p>Guess the hidden 4-digit number</p>
           <span class="cost">1 play</span>
         </div>
       </div>
 
-      <!-- Game Frame -->
       <iframe id="gameFrame" class="game-frame hidden"></iframe>
     </div>
 
-    <!-- Shop Modal -->
     <div id="shopModal" class="modal hidden">
       <div class="modal-content">
         <h2>🛒 Game Shop</h2>
@@ -414,23 +406,6 @@
 
   <script>
     let ws = null;
-    let currentUser = null;
-
-    // User Management System
-    async function fetchUser(username) {
-      try {
-        const response = await fetch(`/api/user/${username}`);
-        const result = await response.json();
-        if (result.success) {
-          currentUser = result.user;
-          updateUserUI(currentUser);
-        }
-        return result;
-      } catch (error) {
-        console.error('Error fetching user:', error);
-        return { success: false, message: 'Server error' };
-      }
-    }
 
     function updateUserUI(user) {
       document.getElementById('playerName').textContent = user.username;
@@ -441,36 +416,25 @@
     }
 
     async function signIn(username, passcode) {
-      if (!username || !passcode) {
-        return { success: false, message: 'Please enter both username and passcode' };
-      }
-
-      if (passcode.length !== 4) {
-        return { success: false, message: 'Passcode must be exactly 4 digits' };
-      }
-
       try {
-        let result = await fetchUser(username);
-        if (!result.success) {
-          const response = await fetch('/api/user', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, passcode })
-          });
-          result = await response.json();
-        } else if (result.user.passcode !== passcode) {
-          return { success: false, message: 'Incorrect passcode' };
-        }
-
+        const response = await fetch('/api/signin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, passcode })
+        });
+        const result = await response.json();
         if (result.success) {
-          currentUser = result.user;
+          localStorage.setItem('gameHubUser', JSON.stringify(result.user));
+          document.getElementById('authSection').classList.add('hidden');
+          document.getElementById('mainSection').classList.remove('hidden');
+          updateUserUI(result.user);
           connectWebSocket();
-          return { success: true, user: currentUser };
+        } else {
+          showMessage(result.message);
         }
-        return result;
       } catch (error) {
         console.error('Error signing in:', error);
-        return { success: false, message: 'Server error' };
+        showMessage('Error connecting to server');
       }
     }
 
@@ -479,7 +443,12 @@
         ws.close();
         ws = null;
       }
-      currentUser = null;
+      localStorage.removeItem('gameHubUser');
+      document.getElementById('authSection').classList.remove('hidden');
+      document.getElementById('mainSection').classList.add('hidden');
+      document.getElementById('gameFrame').classList.add('hidden');
+      document.getElementById('usernameInput').value = '';
+      document.getElementById('passcodeInput').value = '';
     }
 
     function connectWebSocket() {
@@ -491,14 +460,18 @@
 
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        if (data.type === 'redemption-result' && currentUser && currentUser.username === data.username) {
-          if (data.approved) {
-            currentUser.plays += data.plays;
-            currentUser[data.ticketType + '_tickets'] -= 1;
-            updateUserUI(currentUser);
-            showSuccessMessage(`Redeemed ${data.ticketType} ticket! +${data.plays} plays`);
-          } else {
-            showMessage(`Redemption of ${data.ticketType} ticket was rejected by admin`);
+        if (data.type === 'redemption-result') {
+          const user = JSON.parse(localStorage.getItem('gameHubUser'));
+          if (user && user.username === data.username) {
+            if (data.approved) {
+              user.plays = parseInt(user.plays) + data.plays;
+              user[`${data.ticketType}_tickets`] = parseInt(user[`${data.ticketType}_tickets`]) - 1;
+              localStorage.setItem('gameHubUser', JSON.stringify(user));
+              updateUserUI(user);
+              showSuccessMessage(`Redeemed ${data.ticketType} ticket! +${data.plays} plays`);
+            } else {
+              showMessage(`Redemption of ${data.ticketType} ticket was rejected by admin`);
+            }
           }
         }
       };
@@ -508,62 +481,61 @@
       };
     }
 
-    // Game Functions
     async function buyTicket(type) {
-      if (!currentUser) {
+      const user = JSON.parse(localStorage.getItem('gameHubUser'));
+      if (!user) {
         showMessage('Please sign in first.');
-        return false;
+        return;
       }
 
       try {
         const response = await fetch('/api/buy-ticket', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: currentUser.username, ticketType: type })
+          body: JSON.stringify({ username: user.username, ticketType: type })
         });
         const result = await response.json();
         if (result.success) {
-          await fetchUser(currentUser.username);
+          localStorage.setItem('gameHubUser', JSON.stringify(result.user));
+          updateUserUI(result.user);
           showSuccessMessage(`Purchased ${type} ticket!`);
-          return true;
         } else {
           showMessage(result.message || 'Failed to purchase ticket');
-          return false;
         }
       } catch (error) {
-        showMessage('Error purchasing ticket');
-        return false;
+        console.error('Error buying ticket:', error);
+        showMessage('Error connecting to server');
       }
     }
 
     async function redeemTicket(type) {
-      if (!currentUser) {
+      const user = JSON.parse(localStorage.getItem('gameHubUser'));
+      if (!user) {
         showMessage('Please sign in first.');
-        return false;
+        return;
       }
 
       try {
         const response = await fetch('/api/redeem-ticket', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: currentUser.username, ticketType: type })
+          body: JSON.stringify({ username: user.username, ticketType: type })
         });
         const result = await response.json();
         if (result.success) {
           showMessage(`Redemption request for ${type} ticket sent. Waiting for admin approval...`);
-          return true;
         } else {
           showMessage(result.message || 'Failed to request ticket redemption');
-          return false;
         }
       } catch (error) {
-        showMessage('Error requesting ticket redemption');
-        return false;
+        console.error('Error redeeming ticket:', error);
+        showMessage('Error connecting to server');
       }
     }
 
     async function startGame(gameId) {
-      if (!currentUser) {
+      const user = JSON.parse(localStorage.getItem('gameHubUser'));
+      if (!user) {
         showMessage('Please sign in first.');
         return false;
       }
@@ -572,35 +544,40 @@
         const response = await fetch('/api/start-game', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: currentUser.username })
+          body: JSON.stringify({ username: user.username })
         });
         const result = await response.json();
         if (result.success) {
-          await fetchUser(currentUser.username);
+          user.plays -= 1;
+          user.games_played += 1;
+          localStorage.setItem('gameHubUser', JSON.stringify(user));
+          updateUserUI(user);
           return true;
         } else {
           showMessage(result.message || 'Failed to start game');
           return false;
         }
       } catch (error) {
-        showMessage('Error starting game');
+        console.error('Error starting game:', error);
+        showMessage('Error connecting to server');
         return false;
       }
     }
 
     async function awardCoins(gameId, coins) {
-      if (!currentUser) return;
+      const user = JSON.parse(localStorage.getItem('gameHubUser'));
+      if (!user) return;
 
       try {
         const response = await fetch('/api/award-coins', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: currentUser.username, coins })
+          body: JSON.stringify({ username: user.username, coins })
         });
         const result = await response.json();
         if (result.success) {
-          currentUser = result.user;
-          updateUserUI(currentUser);
+          localStorage.setItem('gameHubUser', JSON.stringify(result.user));
+          updateUserUI(result.user);
           showSuccessMessage(`+${coins} coins earned!`);
         }
       } catch (error) {
@@ -609,34 +586,29 @@
     }
 
     async function loadGame(gameId) {
-      if (!(await startGame(gameId))) return;
+      if (await startGame(gameId)) {
+        const gameFrame = document.getElementById('gameFrame');
+        const gamesGrid = document.getElementById('gamesGrid');
+        gameFrame.src = `/games/${gameId}`;
+        gameFrame.classList.remove('hidden');
+        gamesGrid.style.display = 'none';
 
-      const gameFrame = document.getElementById('gameFrame');
-      const gamesGrid = document.getElementById('gamesGrid');
-      
-      gameFrame.src = `/games/${gameId}`;
-      gameFrame.classList.remove('hidden');
-      gamesGrid.style.display = 'none';
-
-      gameFrame.onload = function() {
-        setTimeout(() => {
-          gameFrame.contentWindow.postMessage({ 
-            type: 'setAwardCoins'
-          }, '*');
-        }, 500);
-      };
+        gameFrame.onload = function() {
+          setTimeout(() => {
+            gameFrame.contentWindow.postMessage({ type: 'setAwardCoins' }, '*');
+          }, 500);
+        };
+      }
     }
 
     function returnToHub() {
       const gameFrame = document.getElementById('gameFrame');
       const gamesGrid = document.getElementById('gamesGrid');
-      
       gameFrame.classList.add('hidden');
       gameFrame.src = '';
       gamesGrid.style.display = 'grid';
     }
 
-    // UI Functions
     function openShop() {
       document.getElementById('shopModal').classList.remove('hidden');
     }
@@ -665,15 +637,24 @@
       }, 1500);
     }
 
-    // Event Listeners
     document.addEventListener('DOMContentLoaded', async function() {
-      const savedUsername = localStorage.getItem('gameHubUsername');
-      if (savedUsername) {
-        const result = await fetchUser(savedUsername);
-        if (result.success) {
-          document.getElementById('authSection').classList.add('hidden');
-          document.getElementById('mainSection').classList.remove('hidden');
-          connectWebSocket();
+      const user = JSON.parse(localStorage.getItem('gameHubUser'));
+      if (user) {
+        try {
+          const response = await fetch(`/api/user/${user.username}`);
+          const result = await response.json();
+          if (result.success) {
+            localStorage.setItem('gameHubUser', JSON.stringify(result.user));
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('mainSection').classList.remove('hidden');
+            updateUserUI(result.user);
+            connectWebSocket();
+          } else {
+            signOut();
+          }
+        } catch (error) {
+          console.error('Error verifying user:', error);
+          signOut();
         }
       }
     });
@@ -681,27 +662,10 @@
     document.getElementById('signInBtn').addEventListener('click', async function() {
       const username = document.getElementById('usernameInput').value.trim();
       const passcode = document.getElementById('passcodeInput').value.trim();
-      
-      const result = await signIn(username, passcode);
-      if (result.success) {
-        localStorage.setItem('gameHubUsername', username);
-        document.getElementById('authSection').classList.add('hidden');
-        document.getElementById('mainSection').classList.remove('hidden');
-        document.getElementById('authMessage').textContent = '';
-      } else {
-        showMessage(result.message);
-      }
+      await signIn(username, passcode);
     });
 
-    document.getElementById('logoutBtn').addEventListener('click', function() {
-      signOut();
-      localStorage.removeItem('gameHubUsername');
-      document.getElementById('authSection').classList.remove('hidden');
-      document.getElementById('mainSection').classList.add('hidden');
-      document.getElementById('gameFrame').classList.add('hidden');
-      document.getElementById('usernameInput').value = '';
-      document.getElementById('passcodeInput').value = '';
-    });
+    document.getElementById('logoutBtn').addEventListener('click', signOut);
 
     document.getElementById('passcodeInput').addEventListener('keyup', function(event) {
       if (event.key === 'Enter') {
@@ -709,9 +673,9 @@
       }
     });
 
-    window.addEventListener('message', async function(event) {
+    window.addEventListener('message', function(event) {
       if (event.data && event.data.type === 'awardCoins') {
-        await awardCoins(event.data.gameId, event.data.coins);
+        awardCoins(event.data.gameId, event.data.coins);
       } else if (event.data && event.data.type === 'gameOver') {
         returnToHub();
       }
