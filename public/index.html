@@ -1,562 +1,727 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Hub</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;700&display=swap');
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Games Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4A90E2;
+      --primary-dark: #357ABD;
+      --success: #4CAF50;
+      --warning: #F5A623;
+      --danger: #E74C3C;
+      --neutral: #6B7280;
+      --dark: #1F2937;
+      --light: #F8FAFC;
+    }
 
-        :root {
-            --blue-primary: #00a8ff;
-            --blue-secondary: #0097e6;
-            --blue-dark: #192a56;
-            --blue-light: #4cd137;
-            --neon-blue: #18dcff;
-            --bg-dark: #0a192f;
-            --bg-darker: #050d1a;
-        }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: 'Rajdhani', sans-serif;
-            background: var(--bg-darker);
-        }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      min-height: 100vh;
+      color: var(--dark);
+    }
 
-        #gameContainer {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
-            overflow: hidden;
-        }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
 
-        #gameContainer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                linear-gradient(90deg, var(--neon-blue) 1px, transparent 1px) 0 0 / 50px 50px,
-                linear-gradient(0deg, var(--neon-blue) 1px, transparent 1px) 0 0 / 50px 50px;
-            opacity: 0.1;
-            pointer-events: none;
-        }
+    /* Auth Section */
+    #authSection {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+    }
 
-        #player {
-            position: absolute;
-            width: 64px;
-            height: 64px;
-            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF0WlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNy4yLWMwMDAgNzkuMWI2NWE3OWI0LCAyMDIyLzA2LzEzLTIyOjAxOjAxICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdEV2dD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlRXZlbnQjIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iIHhtbG5zOnBob3Rvc2hvcD0iaHR0cDovL25zLmFkb2JlLmNvbS9waG90b3Nob3AvMS4wLyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgMjQuMCAoTWFjaW50b3NoKSIgeG1wOkNyZWF0ZURhdGU9IjIwMjQtMDItMTVUMTU6NDc6NDctMDU6MDAiIHhtcDpNZXRhZGF0YURhdGU9IjIwMjQtMDItMTVUMTU6NDc6NDctMDU6MDAiIHhtcDpNb2RpZnlEYXRlPSIyMDI0LTAyLTE1VDE1OjQ3OjQ3LTA1OjAwIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjY5ZDE3ZjM1LTY5ZDAtNDI0ZC1hMzM1LTY5ZDBlZjM1NjlkMCIgeG1wTU06RG9jdW1lbnRJRD0iYWRvYmU6ZG9jaWQ6cGhvdG9zaG9wOjY5ZDE3ZjM1LTY5ZDAtNDI0ZC1hMzM1LTY5ZDBlZjM1NjlkMCIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ4bXAuZGlkOjY5ZDE3ZjM1LTY5ZDAtNDI0ZC1hMzM1LTY5ZDBlZjM1NjlkMCIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjY5ZDE3ZjM1LTY5ZDAtNDI0ZC1hMzM1LTY5ZDBlZjM1NjlkMCIgc3RFdnQ6d2hlbj0iMjAyNC0wMi0xNVQxNTo0Nzo0Ny0wNTowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIDI0LjAgKE1hY2ludG9zaCkiLz4gPC9yZGY6U2VxPiA8L3htcE1NOkhpc3Rvcnk+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+');
-            background-size: 256px 64px;
-            background-position: 0 0;
-            transition: all 0.1s ease;
-            image-rendering: pixelated;
-        }
+    #authSection h1 {
+      color: white;
+      font-size: 3rem;
+      margin-bottom: 2rem;
+      text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
 
-        .chest {
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, var(--blue-primary) 0%, var(--blue-dark) 100%);
-            border-radius: 10px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            box-shadow: 0 0 15px rgba(0, 168, 255, 0.3);
-            border: 2px solid var(--neon-blue);
-            transition: transform 0.2s ease;
-        }
+    .auth-form {
+      background: white;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 400px;
+    }
 
-        .chest:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 25px rgba(0, 168, 255, 0.5);
-        }
+    .input {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #e1e5e9;
+      border-radius: 8px;
+      font-size: 16px;
+      margin-bottom: 15px;
+      transition: border-color 0.3s ease;
+    }
 
-        .chest.common { 
-            background: linear-gradient(135deg, #808080 0%, #404040 100%);
-            border-color: #A0A0A0;
-        }
-        .chest.rare { 
-            background: linear-gradient(135deg, var(--blue-primary) 0%, var(--blue-dark) 100%);
-            border-color: var(--neon-blue);
-        }
-        .chest.epic { 
-            background: linear-gradient(135deg, #9932CC 0%, #4B0082 100%);
-            border-color: #BA55D3;
-        }
-        .chest.legendary { 
-            background: linear-gradient(135deg, var(--blue-light) 0%, #2ecc71 100%);
-            border-color: #4cd137;
-        }
-        
-        #gameMenu {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(10, 25, 47, 0.9);
-            padding: 20px;
-            border-radius: 15px;
-            color: var(--neon-blue);
-            border: 2px solid var(--blue-primary);
-            box-shadow: 0 0 20px rgba(0, 168, 255, 0.2);
-            font-family: 'Orbitron', sans-serif;
-            backdrop-filter: blur(10px);
-        }
-        
-        #inventory {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(10, 25, 47, 0.9);
-            padding: 20px;
-            border-radius: 15px;
-            color: var(--neon-blue);
-            max-width: 300px;
-            border: 2px solid var(--blue-primary);
-            box-shadow: 0 0 20px rgba(0, 168, 255, 0.2);
-            font-family: 'Orbitron', sans-serif;
-            backdrop-filter: blur(10px);
-        }
-        
-        #shop {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(10, 25, 47, 0.9);
-            padding: 20px;
-            border-radius: 15px;
-            color: var(--neon-blue);
-            max-width: 300px;
-            border: 2px solid var(--blue-primary);
-            box-shadow: 0 0 20px rgba(0, 168, 255, 0.2);
-            font-family: 'Orbitron', sans-serif;
-            backdrop-filter: blur(10px);
-        }
+    .input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
 
-        .game-room {
-            position: absolute;
-            width: 120px;
-            height: 120px;
-            background: rgba(10, 25, 47, 0.9);
-            border: 2px solid var(--blue-primary);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--neon-blue);
-            cursor: pointer;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.2em;
-            text-align: center;
-            padding: 10px;
-            box-shadow: 0 0 20px rgba(0, 168, 255, 0.2);
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
+    .btn {
+      background: var(--primary);
+      color: white;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
 
-        .game-room:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 30px rgba(0, 168, 255, 0.4);
-            background: rgba(10, 25, 47, 0.95);
-        }
-        
-        #chestAnimation {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 300px;
-            height: 300px;
-            background: rgba(10, 25, 47, 0.95);
-            border-radius: 20px;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            color: var(--neon-blue);
-            font-size: 48px;
-            border: 3px solid var(--blue-primary);
-            box-shadow: 0 0 50px rgba(0, 168, 255, 0.3);
-            backdrop-filter: blur(10px);
-        }
-        
-        .spinning {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
-        }
+    .btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
 
-        h3 {
-            color: var(--neon-blue);
-            margin-top: 0;
-            font-family: 'Orbitron', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            border-bottom: 2px solid var(--blue-primary);
-            padding-bottom: 10px;
-        }
+    .btn.secondary {
+      background: var(--neutral);
+      width: auto;
+      margin: 0 5px;
+    }
 
-        #leaderboard div {
-            margin: 10px 0;
-            padding: 5px;
-            border-bottom: 1px solid rgba(0, 168, 255, 0.2);
-        }
+    .btn.shop {
+      background: var(--warning);
+      width: auto;
+    }
 
-        #inventoryItems div {
-            margin: 5px 0;
-            padding: 5px;
-            background: rgba(0, 168, 255, 0.1);
-            border-radius: 5px;
-            border-left: 3px solid var(--blue-primary);
-        }
+    .btn.shop:hover {
+      background: #E09900;
+    }
 
-        @keyframes walk {
-            0% { background-position: 0 0; }
-            25% { background-position: -64px 0; }
-            50% { background-position: -128px 0; }
-            75% { background-position: -192px 0; }
-            100% { background-position: 0 0; }
-        }
+    /* Main Hub */
+    #gameHub {
+      opacity: 0;
+      animation: fadeIn 0.5s ease forwards;
+    }
 
-        .walking {
-            animation: walk 0.4s steps(4) infinite;
-        }
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
 
-        .crate {
-            margin: 10px 0;
-            padding: 15px;
-            background: rgba(0, 168, 255, 0.1);
-            border-radius: 8px;
-            border: 1px solid var(--blue-primary);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            transition: all 0.3s ease;
-        }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
 
-        .crate:hover {
-            background: rgba(0, 168, 255, 0.2);
-            transform: translateX(5px);
-        }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
 
-        .crate-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .user-info h2 {
+      color: var(--dark);
+      font-size: 1.5rem;
+    }
 
-        .crate-title {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: var(--neon-blue);
-        }
+    .currency {
+      display: flex;
+      gap: 15px;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
 
-        .crate-price {
-            color: var(--blue-light);
-            font-weight: bold;
-        }
+    .currency span {
+      background: var(--light);
+      padding: 8px 12px;
+      border-radius: 20px;
+      border: 2px solid #e1e5e9;
+    }
 
-        .crate-prizes {
-            font-size: 0.9em;
-            color: var(--blue-secondary);
-            margin: 5px 0;
-        }
+    .button-group {
+      display: flex;
+      gap: 10px;
+    }
 
-        .crate .open-button {
-            background: var(--blue-primary);
-            color: var(--bg-dark);
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: 'Orbitron', sans-serif;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
 
-        .crate .open-button:hover {
-            background: var(--blue-light);
-            transform: scale(1.05);
-        }
+    .game-card {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      border: 3px solid transparent;
+    }
 
-        .crate .open-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+    .game-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+      border-color: var(--primary);
+    }
 
-        /* Sprite sheet explanation */
-        .sprite-info {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(10, 25, 47, 0.9);
-            padding: 20px;
-            border-radius: 15px;
-            color: var(--neon-blue);
-            max-width: 300px;
-            border: 2px solid var(--blue-primary);
-            box-shadow: 0 0 20px rgba(0, 168, 255, 0.2);
-            font-family: 'Orbitron', sans-serif;
-            backdrop-filter: blur(10px);
-            font-size: 0.9em;
-        }
-    </style>
+    .game-card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      color: var(--dark);
+    }
+
+    .game-card p {
+      color: var(--neutral);
+      margin-bottom: 15px;
+    }
+
+    .cost {
+      background: var(--primary);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    /* Game Frame */
+    .game-frame {
+      width: 100%;
+      height: 80vh;
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    /* Shop Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+    }
+
+    .modal-content h2 {
+      margin-bottom: 20px;
+      color: var(--dark);
+    }
+
+    .shop-items {
+      display: grid;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .shop-item {
+      border: 2px solid #e1e5e9;
+      border-radius: 10px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .shop-item:hover {
+      border-color: var(--primary);
+      background: var(--light);
+    }
+
+    .shop-item h3 {
+      color: var(--dark);
+      margin-bottom: 5px;
+    }
+
+    .shop-item p {
+      color: var(--neutral);
+      margin-bottom: 10px;
+    }
+
+    .price {
+      background: var(--warning);
+      color: white;
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-weight: 600;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .success-animation {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--success);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 25px;
+      font-weight: bold;
+      font-size: 1.2rem;
+      z-index: 9999;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+
+    #authMessage {
+      color: var(--danger);
+      margin-top: 10px;
+      font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+
+      #authSection h1 {
+        font-size: 2rem;
+      }
+
+      .auth-form {
+        padding: 1.5rem;
+      }
+
+      .top-bar {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
+
+      .user-info {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .currency {
+        justify-content: center;
+      }
+
+      .games-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .game-frame {
+        height: 70vh;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div id="gameContainer">
-        <div id="player"></div>
-        <div id="chestAnimation"></div>
-        
-        <!-- Game Rooms -->
-        <div class="game-room" style="top: 100px; left: 100px;" data-game="tictactoe">Tic Tac Toe</div>
-        <div class="game-room" style="top: 100px; right: 100px;" data-game="wordle">Number Wordle</div>
-        
-        <!-- Menu -->
-        <div id="gameMenu">
-            <h3>Leaderboard</h3>
-            <div id="leaderboard"></div>
-        </div>
-        
-        <!-- Crates -->
-        <div id="shop">
-            <h3>Prize Crates</h3>
-            <div class="crate">
-                <div class="crate-header">
-                    <span class="crate-title">3D Printed Collection</span>
-                    <span class="crate-price">500 coins</span>
-                </div>
-                <div class="crate-prizes">
-                    Possible prizes: Mini figures, Keychains, Desk decorations
-                </div>
-                <button class="open-button" onclick="openCrate('3dPrinted')">Open Crate</button>
-            </div>
-            <div class="crate">
-                <div class="crate-header">
-                    <span class="crate-title">Sticker Pack</span>
-                    <span class="crate-price">300 coins</span>
-                </div>
-                <div class="crate-prizes">
-                    Possible prizes: Game-themed stickers, Character stickers, Logo stickers
-                </div>
-                <button class="open-button" onclick="openCrate('stickers')">Open Crate</button>
-            </div>
-            <div class="crate">
-                <div class="crate-header">
-                    <span class="crate-title">Stationery Set</span>
-                    <span class="crate-price">400 coins</span>
-                </div>
-                <div class="crate-prizes">
-                    Possible prizes: Custom pens, Pencils, Notebooks
-                </div>
-                <button class="open-button" onclick="openCrate('stationery')">Open Crate</button>
-            </div>
-        </div>
-
-        <!-- Sprite Sheet Info -->
-        <div class="sprite-info">
-            <h3>Sprite Sheet Guide</h3>
-            <p>The sprite sheet (person_sprite_sheet.png) is 256px wide and 64px high, containing 4 frames of animation:</p>
-            <ul>
-                <li>Frame 1: 0px to 64px</li>
-                <li>Frame 2: 64px to 128px</li>
-                <li>Frame 3: 128px to 192px</li>
-                <li>Frame 4: 192px to 256px</li>
-            </ul>
-            <p>The animation cycles through these frames when walking.</p>
-        </div>
+  <div class="container">
+    <!-- Auth Section -->
+    <div id="authSection">
+      <h1>🎮 Memory Games Hub</h1>
+      <div class="auth-form">
+        <input type="text" id="usernameInput" placeholder="Enter Username" class="input">
+        <input type="password" id="passcodeInput" maxlength="4" placeholder="4-digit Passcode" class="input">
+        <button id="signInBtn" class="btn">🚀 Start Playing</button>
+        <div id="authMessage"></div>
+      </div>
     </div>
 
-    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
-    <script>
-        const socket = io();
-        let player = null;
-        let gameState = {
-            players: new Map(),
-            chests: new Map(),
-            coins: 0
-        };
-        let isMoving = false;
-        let lastDirection = 'right';
+    <!-- Main Game Hub -->
+    <div id="mainSection" class="hidden">
+      <div class="top-bar">
+        <div class="user-info">
+          <h2 id="playerName">Player</h2>
+          <div class="currency">
+            <span>🪙 <span id="memoryCoins">500</span></span>
+            <span>🎫 <span id="plays">5</span></span>
+            <span>🟡 <span id="yellowTickets">0</span></span>
+            <span>🔵 <span id="blueTickets">0</span></span>
+          </div>
+        </div>
+        <div class="button-group">
+          <button class="btn shop" onclick="openShop()">🛒 Shop</button>
+          <button class="btn secondary" id="logoutBtn">🚪 Logout</button>
+        </div>
+      </div>
 
-        // Initialize player
-        function initPlayer() {
-            const name = prompt('Enter your name:') || 'Player';
-            player = {
-                name,
-                position: { x: 400, y: 300 },
-                coins: 0,
-                inventory: []
-            };
-            socket.emit('playerJoin', { name });
+      <div class="games-grid" id="gamesGrid">
+        <div class="game-card" onclick="loadGame('memory-mole')">
+          <h3>🐭 Memory Mole</h3>
+          <p>Test your sequence memory skills</p>
+          <span class="cost">1 play</span>
+        </div>
+        <div class="game-card" onclick="loadGame('number-wordle')">
+          <h3>🔢 Number Wordle</h3>
+          <p>Guess the hidden 4-digit number</p>
+          <span class="cost">1 play</span>
+        </div>
+      </div>
+
+      <!-- Game Frame -->
+      <iframe id="gameFrame" class="game-frame hidden"></iframe>
+    </div>
+
+    <!-- Shop Modal -->
+    <div id="shopModal" class="modal hidden">
+      <div class="modal-content">
+        <h2>🛒 Game Shop</h2>
+        <div class="shop-items">
+          <div class="shop-item" onclick="buyTicket('yellow')">
+            <h3>🟡 Yellow Ticket</h3>
+            <p>Redeem for 4 game plays (Admin Approval Required)</p>
+            <span class="price">100 coins</span>
+          </div>
+          <div class="shop-item" onclick="buyTicket('blue')">
+            <h3>🔵 Blue Ticket</h3>
+            <p>Redeem for 9 game plays (Admin Approval Required)</p>
+            <span class="price">200 coins</span>
+          </div>
+        </div>
+        <button class="btn" onclick="closeShop()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let ws = null;
+    let currentUser = null;
+
+    // User Management System
+    async function fetchUser(username) {
+      try {
+        const response = await fetch(`/api/user/${username}`);
+        const result = await response.json();
+        if (result.success) {
+          currentUser = result.user;
+          updateUserUI(currentUser);
+        }
+        return result;
+      } catch (error) {
+        console.error('Error fetching user:', error);
+        return { success: false, message: 'Server error' };
+      }
+    }
+
+    function updateUserUI(user) {
+      document.getElementById('playerName').textContent = user.username;
+      document.getElementById('memoryCoins').textContent = user.memory_coins;
+      document.getElementById('plays').textContent = user.plays;
+      document.getElementById('yellowTickets').textContent = user.yellow_tickets;
+      document.getElementById('blueTickets').textContent = user.blue_tickets;
+    }
+
+    async function signIn(username, passcode) {
+      if (!username || !passcode) {
+        return { success: false, message: 'Please enter both username and passcode' };
+      }
+
+      if (passcode.length !== 4) {
+        return { success: false, message: 'Passcode must be exactly 4 digits' };
+      }
+
+      try {
+        let result = await fetchUser(username);
+        if (!result.success) {
+          const response = await fetch('/api/user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, passcode })
+          });
+          result = await response.json();
+        } else if (result.user.passcode !== passcode) {
+          return { success: false, message: 'Incorrect passcode' };
         }
 
-        // Crate functions
-        function openCrate(crateId) {
-            const prices = {
-                '3dPrinted': 500,
-                'stickers': 300,
-                'stationery': 400
-            };
-
-            if (player.coins >= prices[crateId]) {
-                const animation = document.getElementById('chestAnimation');
-                animation.style.display = 'flex';
-                animation.innerHTML = '🎲';
-                animation.classList.add('spinning');
-                
-                setTimeout(() => {
-                    socket.emit('openCrate', { crateId });
-                    player.coins -= prices[crateId];
-                    updateCrates();
-                    animation.classList.remove('spinning');
-                    animation.style.display = 'none';
-                }, 2000);
-            } else {
-                alert('Not enough coins!');
-            }
+        if (result.success) {
+          currentUser = result.user;
+          connectWebSocket();
+          return { success: true, user: currentUser };
         }
+        return result;
+      } catch (error) {
+        console.error('Error signing in:', error);
+        return { success: false, message: 'Server error' };
+      }
+    }
 
-        function updateCrates() {
-            const crates = document.querySelectorAll('.crate');
-            crates.forEach(crate => {
-                const price = parseInt(crate.querySelector('.crate-price').textContent);
-                const button = crate.querySelector('.open-button');
-                button.disabled = player.coins < price;
-                button.style.opacity = player.coins < price ? '0.5' : '1';
-            });
+    function signOut() {
+      if (ws) {
+        ws.close();
+        ws = null;
+      }
+      currentUser = null;
+    }
+
+    function connectWebSocket() {
+      ws = new WebSocket(`wss://${window.location.host}`);
+      
+      ws.onopen = () => {
+        console.log('Connected to WebSocket server');
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'redemption-result' && currentUser && currentUser.username === data.username) {
+          if (data.approved) {
+            currentUser.plays += data.plays;
+            currentUser[data.ticketType + '_tickets'] -= 1;
+            updateUserUI(currentUser);
+            showSuccessMessage(`Redeemed ${data.ticketType} ticket! +${data.plays} plays`);
+          } else {
+            showMessage(`Redemption of ${data.ticketType} ticket was rejected by admin`);
+          }
         }
+      };
 
-        // Movement handling with sprite animation
-        document.addEventListener('keydown', (e) => {
-            if (!player) return;
-            
-            const speed = 10;
-            const playerElement = document.getElementById('player');
-            isMoving = true;
-            
-            switch(e.key) {
-                case 'ArrowUp':
-                    player.position.y -= speed;
-                    lastDirection = 'up';
-                    break;
-                case 'ArrowDown':
-                    player.position.y += speed;
-                    lastDirection = 'down';
-                    break;
-                case 'ArrowLeft':
-                    player.position.x -= speed;
-                    lastDirection = 'left';
-                    playerElement.style.transform = 'scaleX(-1)';
-                    break;
-                case 'ArrowRight':
-                    player.position.x += speed;
-                    lastDirection = 'right';
-                    playerElement.style.transform = 'scaleX(1)';
-                    break;
-            }
-            
-            playerElement.classList.add('walking');
-            socket.emit('playerMove', player.position);
-            updatePlayerPosition();
+      ws.onclose = () => {
+        console.log('Disconnected from WebSocket server');
+      };
+    }
+
+    // Game Functions
+    async function buyTicket(type) {
+      if (!currentUser) {
+        showMessage('Please sign in first.');
+        return false;
+      }
+
+      try {
+        const response = await fetch('/api/buy-ticket', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: currentUser.username, ticketType: type })
         });
-
-        document.addEventListener('keyup', (e) => {
-            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                const playerElement = document.getElementById('player');
-                playerElement.classList.remove('walking');
-                isMoving = false;
-            }
-        });
-
-        function updatePlayerPosition() {
-            const playerElement = document.getElementById('player');
-            playerElement.style.left = `${player.position.x}px`;
-            playerElement.style.top = `${player.position.y}px`;
+        const result = await response.json();
+        if (result.success) {
+          await fetchUser(currentUser.username);
+          showSuccessMessage(`Purchased ${type} ticket!`);
+          return true;
+        } else {
+          showMessage(result.message || 'Failed to purchase ticket');
+          return false;
         }
+      } catch (error) {
+        showMessage('Error purchasing ticket');
+        return false;
+      }
+    }
 
-        // Socket event handlers
-        socket.on('gameState', (state) => {
-            gameState = state;
-            updateGameState();
+    async function redeemTicket(type) {
+      if (!currentUser) {
+        showMessage('Please sign in first.');
+        return false;
+      }
+
+      try {
+        const response = await fetch('/api/redeem-ticket', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: currentUser.username, ticketType: type })
         });
-
-        socket.on('playerMoved', ({ id, position }) => {
-            if (gameState.players.has(id)) {
-                gameState.players.get(id).position = position;
-                updateGameState();
-            }
-        });
-
-        socket.on('chestOpened', ({ playerId, item }) => {
-            if (playerId === socket.id) {
-                const inventory = document.getElementById('inventoryItems');
-                const itemElement = document.createElement('div');
-                itemElement.textContent = item;
-                inventory.appendChild(itemElement);
-            }
-        });
-
-        socket.on('leaderboardUpdate', (leaderboard) => {
-            const leaderboardElement = document.getElementById('leaderboard');
-            leaderboardElement.innerHTML = '';
-            
-            Object.entries(leaderboard).forEach(([game, scores]) => {
-                const gameScores = document.createElement('div');
-                gameScores.innerHTML = `<h4>${game}</h4>`;
-                scores.forEach(score => {
-                    gameScores.innerHTML += `<div>${score.playerName}: ${score.score}</div>`;
-                });
-                leaderboardElement.appendChild(gameScores);
-            });
-        });
-
-        socket.on('crateOpened', ({ prize }) => {
-            player.inventory.push(prize);
-            alert(`You won: ${prize}!`);
-        });
-
-        socket.on('coinsEarned', (amount) => {
-            player.coins += amount;
-            updateCrates();
-        });
-
-        function updateGameState() {
-            // Update chests
-            const container = document.getElementById('gameContainer');
-            const existingChests = container.querySelectorAll('.chest');
-            existingChests.forEach(chest => chest.remove());
-            
-            gameState.chests.forEach((chest, id) => {
-                const chestElement = document.createElement('div');
-                chestElement.className = `chest ${chest.type}`;
-                chestElement.style.left = `${chest.position.x}px`;
-                chestElement.style.top = `${chest.position.y}px`;
-                chestElement.innerHTML = '🎁';
-                chestElement.onclick = () => openChest(id);
-                container.appendChild(chestElement);
-            });
+        const result = await response.json();
+        if (result.success) {
+          showMessage(`Redemption request for ${type} ticket sent. Waiting for admin approval...`);
+          return true;
+        } else {
+          showMessage(result.message || 'Failed to request ticket redemption');
+          return false;
         }
+      } catch (error) {
+        showMessage('Error requesting ticket redemption');
+        return false;
+      }
+    }
 
-        // Game room click handlers
-        document.querySelectorAll('.game-room').forEach(room => {
-            room.addEventListener('click', () => {
-                const game = room.dataset.game;
-                // Implement game loading logic here
-                alert(`Loading ${game}...`);
-            });
+    async function startGame(gameId) {
+      if (!currentUser) {
+        showMessage('Please sign in first.');
+        return false;
+      }
+
+      try {
+        const response = await fetch('/api/start-game', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: currentUser.username })
         });
+        const result = await response.json();
+        if (result.success) {
+          await fetchUser(currentUser.username);
+          return true;
+        } else {
+          showMessage(result.message || 'Failed to start game');
+          return false;
+        }
+      } catch (error) {
+        showMessage('Error starting game');
+        return false;
+      }
+    }
 
-        // Initialize the game
-        initPlayer();
-    </script>
+    async function awardCoins(gameId, coins) {
+      if (!currentUser) return;
+
+      try {
+        const response = await fetch('/api/award-coins', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: currentUser.username, coins })
+        });
+        const result = await response.json();
+        if (result.success) {
+          currentUser = result.user;
+          updateUserUI(currentUser);
+          showSuccessMessage(`+${coins} coins earned!`);
+        }
+      } catch (error) {
+        console.error('Error awarding coins:', error);
+      }
+    }
+
+    async function loadGame(gameId) {
+      if (!(await startGame(gameId))) return;
+
+      const gameFrame = document.getElementById('gameFrame');
+      const gamesGrid = document.getElementById('gamesGrid');
+      
+      gameFrame.src = `/games/${gameId}`;
+      gameFrame.classList.remove('hidden');
+      gamesGrid.style.display = 'none';
+
+      gameFrame.onload = function() {
+        setTimeout(() => {
+          gameFrame.contentWindow.postMessage({ 
+            type: 'setAwardCoins'
+          }, '*');
+        }, 500);
+      };
+    }
+
+    function returnToHub() {
+      const gameFrame = document.getElementById('gameFrame');
+      const gamesGrid = document.getElementById('gamesGrid');
+      
+      gameFrame.classList.add('hidden');
+      gameFrame.src = '';
+      gamesGrid.style.display = 'grid';
+    }
+
+    // UI Functions
+    function openShop() {
+      document.getElementById('shopModal').classList.remove('hidden');
+    }
+
+    function closeShop() {
+      document.getElementById('shopModal').classList.add('hidden');
+    }
+
+    function showMessage(message) {
+      document.getElementById('authMessage').textContent = message;
+      setTimeout(() => {
+        document.getElementById('authMessage').textContent = '';
+      }, 3000);
+    }
+
+    function showSuccessMessage(message) {
+      const success = document.createElement('div');
+      success.className = 'success-animation';
+      success.textContent = message;
+      document.body.appendChild(success);
+
+      setTimeout(() => {
+        success.style.transform = 'translate(-50%, -50%) translateY(-50px)';
+        success.style.opacity = '0';
+        setTimeout(() => success.remove(), 300);
+      }, 1500);
+    }
+
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', async function() {
+      const savedUsername = localStorage.getItem('gameHubUsername');
+      if (savedUsername) {
+        const result = await fetchUser(savedUsername);
+        if (result.success) {
+          document.getElementById('authSection').classList.add('hidden');
+          document.getElementById('mainSection').classList.remove('hidden');
+          connectWebSocket();
+        }
+      }
+    });
+
+    document.getElementById('signInBtn').addEventListener('click', async function() {
+      const username = document.getElementById('usernameInput').value.trim();
+      const passcode = document.getElementById('passcodeInput').value.trim();
+      
+      const result = await signIn(username, passcode);
+      if (result.success) {
+        localStorage.setItem('gameHubUsername', username);
+        document.getElementById('authSection').classList.add('hidden');
+        document.getElementById('mainSection').classList.remove('hidden');
+        document.getElementById('authMessage').textContent = '';
+      } else {
+        showMessage(result.message);
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+      signOut();
+      localStorage.removeItem('gameHubUsername');
+      document.getElementById('authSection').classList.remove('hidden');
+      document.getElementById('mainSection').classList.add('hidden');
+      document.getElementById('gameFrame').classList.add('hidden');
+      document.getElementById('usernameInput').value = '';
+      document.getElementById('passcodeInput').value = '';
+    });
+
+    document.getElementById('passcodeInput').addEventListener('keyup', function(event) {
+      if (event.key === 'Enter') {
+        document.getElementById('signInBtn').click();
+      }
+    });
+
+    window.addEventListener('message', async function(event) {
+      if (event.data && event.data.type === 'awardCoins') {
+        await awardCoins(event.data.gameId, event.data.coins);
+      } else if (event.data && event.data.type === 'gameOver') {
+        returnToHub();
+      }
+    });
+
+    document.getElementById('shopModal').addEventListener('click', function(event) {
+      if (event.target === this) {
+        closeShop();
+      }
+    });
+  </script>
 </body>
-</html> 
+</html>

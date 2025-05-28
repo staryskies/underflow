@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Mole</title>
+  <style>
+    :root {
+      --primary: #4CAF50;
+      --primary-dark: #45a049;
+      --success: #4CAF50;
+      --warning: #F5A623;
+      --neutral: #6B7280;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      min-height: 100vh;
+    }
+
+    .game-container {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      text-align: center;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #1F2937;
+      margin-bottom: 20px;
+    }
+
+    .game-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #1F2937;
+    }
+
+    .game-phase {
+      background: #e3f2fd;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px 0;
+      font-size: 20px;
+      font-weight: bold;
+      color: #1976d2;
+    }
+
+    .sequence-display {
+      background: #f0f0f0;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 10px 0;
+    }
+
+    .sequence-bar {
+      width: 100%;
+      height: 15px;
+      background: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .sequence-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), #2196F3);
+      border-radius: 10px;
+      transition: width 0.3s ease;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 10px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #8B4513;
+      border-radius: 10px;
+      border: 5px solid #654321;
+    }
+
+    .hole {
+      width: 100px;
+      height: 100px;
+      background: radial-gradient(circle, #2D1810 0%, #1A0F08 100%);
+      border-radius: 50%;
+      position: relative;
+      cursor: pointer;
+      border: 3px solid #654321;
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.6);
+      transition: all 0.3s ease;
+    }
+
+    .hole.mole {
+      background: radial-gradient(circle, #8B4513 0%, #654321 100%);
+      border-color: var(--warning);
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.6), 0 0 15px rgba(245, 166, 35, 0.7);
+    }
+
+    .hole.mole::after {
+      content: '🐭';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+      animation: moleWiggle 0.5s ease;
+    }
+
+    .hole.clickable {
+      border-color: var(--primary);
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.6), 0 0 10px rgba(76, 175, 80, 0.5);
+    }
+
+    .hole.correct {
+      border-color: var(--success);
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.6), 0 0 20px rgba(76, 175, 80, 0.8);
+      animation: correctPulse 0.5s ease;
+    }
+
+    .hole.incorrect {
+      border-color: #f44336;
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.6), 0 0 20px rgba(244, 67, 54, 0.8);
+      animation: incorrectShake 0.5s ease;
+    }
+
+    @keyframes moleWiggle {
+      0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+      25% { transform: translate(-50%, -50%) rotate(-5deg); }
+      75% { transform: translate(-50%, -50%) rotate(5deg); }
+    }
+
+    @keyframes correctPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    @keyframes incorrectShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .btn {
+      background: var(--primary);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 10px;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .celebration {
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      padding: 20px;
+      border-radius: 15px;
+      margin: 20px 0;
+      animation: celebrateGlow 2s infinite alternate;
+    }
+
+    @keyframes celebrateGlow {
+      0% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+      100% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.8); }
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: repeat(3, 80px);
+        grid-template-rows: repeat(4, 80px);
+        gap: 8px;
+        padding: 15px;
+      }
+
+      .hole {
+        width: 80px;
+        height: 80px;
+      }
+
+      .game-info {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>🐭 Memory Mole</h1>
+    <div class="game-info">
+      <span>Level: <span id="level">1</span></span>
+      <span>Sequences: <span id="sequences">0/2</span></span>
+      <span>Coins: <span id="coins">0</span></span>
+    </div>
+    <div class="game-phase" id="phase">Watch the sequence!</div>
+    <div class="sequence-display">
+      <div class="sequence-info" id="sequenceInfo">Get ready...</div>
+      <div class="sequence-bar">
+        <div class="sequence-fill" id="sequenceFill" style="width: 0%"></div>
+      </div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="message hidden" id="endMessage"></div>
+    <button class="btn hidden" id="restartBtn">Play Again</button>
+    <button class="btn" id="homeBtn">🏠 Back to Hub</button>
+  </div>
+
+  <script>
+    let awardCoins = null;
+    let level = 1;
+    let sequencesCompleted = 0;
+    let totalCoins = 0;
+    const sequencesPerLevel = 2;
+    let currentSequence = [];
+    let userSequence = [];
+    let phase = 'watch';
+    let currentStep = 0;
+    let isGameActive = false;
+
+    const grid = document.getElementById('grid');
+    const phaseEl = document.getElementById('phase');
+    const levelEl = document.getElementById('level');
+    const sequencesEl = document.getElementById('sequences');
+    const coinsEl = document.getElementById('coins');
+    const sequenceInfo = document.getElementById('sequenceInfo');
+    const sequenceFill = document.getElementById('sequenceFill');
+    const endMessage = document.getElementById('endMessage');
+    const restartBtn = document.getElementById('restartBtn');
+    const homeBtn = document.getElementById('homeBtn');
+
+    function initGrid() {
+      grid.innerHTML = '';
+      for (let i = 0; i < 12; i++) {
+        const hole = document.createElement('div');
+        hole.className = 'hole';
+        hole.dataset.index = i;
+        hole.addEventListener('click', handleHoleClick);
+        grid.appendChild(hole);
+      }
+    }
+
+    function generateSequence() {
+      const sequenceLength = Math.min(3 + level, 8);
+      currentSequence = [];
+      for (let i = 0; i < sequenceLength; i++) {
+        currentSequence.push(Math.floor(Math.random() * 12));
+      }
+      userSequence = [];
+      currentStep = 0;
+    }
+
+    async function showSequence() {
+      phase = 'watch';
+      phaseEl.textContent = 'Watch the sequence!';
+      sequenceInfo.textContent = `Sequence ${sequencesCompleted + 1}/${sequencesPerLevel} - Length: ${currentSequence.length}`;
+      isGameActive = false;
+      
+      document.querySelectorAll('.hole').forEach(hole => {
+        hole.className = 'hole';
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      for (let i = 0; i < currentSequence.length; i++) {
+        const holeIndex = currentSequence[i];
+        const hole = document.querySelector(`[data-index="${holeIndex}"]`);
+        
+        sequenceFill.style.width = `${((i + 1) / currentSequence.length) * 100}%`;
+        
+        hole.classList.add('mole');
+        
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        hole.classList.remove('mole');
+        
+        await new Promise(resolve => setTimeout(resolve, 400));
+      }
+
+      startInputPhase();
+    }
+
+    function startInputPhase() {
+      phase = 'input';
+      phaseEl.textContent = 'Click the sequence!';
+      sequenceInfo.textContent = `Click hole ${userSequence.length + 1} of ${currentSequence.length}`;
+      sequenceFill.style.width = '0%';
+      isGameActive = true;
+      
+      document.querySelectorAll('.hole').forEach(hole => {
+        hole.classList.add('clickable');
+      });
+    }
+
+    function handleHoleClick(event) {
+      if (!isGameActive || phase !== 'input') return;
+
+      const clickedIndex = parseInt(event.target.dataset.index);
+      const expectedIndex = currentSequence[userSequence.length];
+      
+      userSequence.push(clickedIndex);
+      
+      sequenceFill.style.width = `${(userSequence.length / currentSequence.length) * 100}%`;
+      
+      if (clickedIndex === expectedIndex) {
+        event.target.classList.add('correct');
+        setTimeout(() => event.target.classList.remove('correct'), 500);
+        
+        if (userSequence.length === currentSequence.length) {
+          completeSequence();
+        } else {
+          sequenceInfo.textContent = `Click hole ${userSequence.length + 1} of ${currentSequence.length}`;
+        }
+      } else {
+        event.target.classList.add('incorrect');
+        setTimeout(() => event.target.classList.remove('incorrect'), 500);
+        gameOver(false);
+      }
+    }
+
+    function completeSequence() {
+      isGameActive = false;
+      sequencesCompleted++;
+      const coinsEarned = level * 10;
+      totalCoins += coinsEarned;
+      
+      document.querySelectorAll('.hole').forEach(hole => {
+        hole.classList.remove('clickable');
+      });
+
+      updateUI();
+      
+      if (sequencesCompleted >= sequencesPerLevel) {
+        levelComplete();
+      } else {
+        phaseEl.textContent = '✅ Correct! Next sequence...';
+        setTimeout(() => {
+          generateSequence();
+          showSequence();
+        }, 2000);
+      }
+    }
+
+    function levelComplete() {
+      level++;
+      sequencesCompleted = 0;
+      const bonusCoins = level * 20;
+      totalCoins += bonusCoins;
+      
+      updateUI();
+      
+      phaseEl.textContent = `🎉 Level ${level - 1} Complete!`;
+      sequenceInfo.textContent = `Bonus: ${bonusCoins} coins! Starting Level ${level}...`;
+      
+      setTimeout(() => {
+        generateSequence();
+        showSequence();
+      }, 3000);
+    }
+
+    function gameOver(won) {
+      isGameActive = false;
+      phase = 'ended';
+      
+      document.querySelectorAll('.hole').forEach(hole => {
+        hole.classList.remove('clickable');
+      });
+
+      if (won) {
+        phaseEl.textContent = '🏆 Congratulations!';
+        endMessage.innerHTML = `
+          <div class="celebration">
+            <h2>🎉 Game Complete! 🎉</h2>
+            <p>You completed all levels!</p>
+            <p><strong>Total Coins Earned: ${totalCoins}</strong></p>
+          </div>
+        `;
+      } else {
+        phaseEl.textContent = '💥 Game Over';
+        endMessage.innerHTML = `
+          <div>
+            <h3>Better luck next time!</h3>
+            <p>You reached Level ${level}</p>
+            <p><strong>Coins Earned: ${totalCoins}</strong></p>
+          </div>
+        `;
+      }
+      
+      endMessage.classList.remove('hidden');
+      restartBtn.classList.remove('hidden');
+      
+      if (awardCoins && totalCoins > 0) {
+        awardCoins('memory-mole', totalCoins);
+      }
+    }
+
+    function updateUI() {
+      levelEl.textContent = level;
+      sequencesEl.textContent = `${sequencesCompleted}/${sequencesPerLevel}`;
+      coinsEl.textContent = totalCoins;
+    }
+
+    function restartGame() {
+      level = 1;
+      sequencesCompleted = 0;
+      totalCoins = 0;
+      currentSequence = [];
+      userSequence = [];
+      phase = 'watch';
+      isGameActive = false;
+      
+      endMessage.classList.add('hidden');
+      restartBtn.classList.add('hidden');
+      
+      updateUI();
+      startGame();
+    }
+
+    function startGame() {
+      generateSequence();
+      showSequence();
+    }
+
+    restartBtn.addEventListener('click', restartGame);
+    
+    homeBtn.addEventListener('click', () => {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'gameOver' }, '*');
+      }
+    });
+
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'setAwardCoins') {
+        awardCoins = (gameId, coins) => {
+          window.parent.postMessage({
+            type: 'awardCoins',
+            gameId: gameId,
+            coins: coins
+          }, '*');
+        };
+      }
+    });
+
+    initGrid();
+    updateUI();
+    setTimeout(() => {
+      startGame();
+    }, 1000);
+  </script>
+</body>
+</html>

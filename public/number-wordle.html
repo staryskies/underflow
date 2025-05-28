@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Number Wordle</title>
+  <style>
+    :root {
+      --primary: #4A90E2;
+      --primary-dark: #357ABD;
+      --success: #4CAF50;
+      --warning: #F5A623;
+      --danger: #E74C3C;
+      --neutral: #6B7280;
+      --dark: #1F2937;
+      --light: #F8FAFC;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      min-height: 100vh;
+      color: var(--dark);
+    }
+
+    .game-container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      text-align: center;
+      max-width: 500px;
+      width: 100%;
+    }
+
+    h1 {
+      color: var(--dark);
+      margin-bottom: 10px;
+      font-size: 2.5rem;
+    }
+
+    .subtitle {
+      color: var(--neutral);
+      margin-bottom: 30px;
+      font-size: 1.1rem;
+    }
+
+    .game-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--dark);
+    }
+
+    .guess-grid {
+      display: grid;
+      gap: 10px;
+      margin: 20px 0;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .guess-row {
+      display: grid;
+      grid-template-columns: repeat(4, 60px) 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      background: var(--light);
+      border-radius: 8px;
+    }
+
+    .digit-box {
+      width: 60px;
+      height: 60px;
+      border: 2px solid #e1e5e9;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      background: white;
+    }
+
+    .digit-box.correct {
+      background: var(--success);
+      color: white;
+      border-color: var(--success);
+    }
+
+    .digit-box.position {
+      background: var(--warning);
+      color: white;
+      border-color: var(--warning);
+    }
+
+    .digit-box.wrong {
+      background: var(--neutral);
+      color: white;
+      border-color: var(--neutral);
+    }
+
+    .feedback {
+      font-weight: bold;
+      font-size: 0.9rem;
+      color: var(--dark);
+    }
+
+    .input-section {
+      margin: 30px 0;
+    }
+
+    .number-input {
+      width: 200px;
+      height: 60px;
+      border: 2px solid #e1e5e9;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      background: white;
+      transition: border-color 0.3s ease;
+      margin-bottom: 20px;
+      letter-spacing: 0.5em;
+    }
+
+    .number-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    }
+
+    .btn {
+      background: var(--primary);
+      color: white;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 0 10px;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn:disabled {
+      background: var(--neutral);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn.success {
+      background: var(--success);
+    }
+
+    .btn.success:hover {
+      background: #45a049;
+    }
+
+    .message {
+      margin: 20px 0;
+      padding: 15px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .message.warning {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+
+    .rules {
+      background: var(--light);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+      text-align: left;
+    }
+
+    .rules h3 {
+      color: var(--dark);
+      margin-bottom: 15px;
+    }
+
+    .rules ul {
+      color: var(--neutral);
+      line-height: 1.6;
+    }
+
+    .rules li {
+      margin-bottom: 8px;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+    }
+
+    .legend-box {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .celebration {
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      padding: 30px;
+      border-radius: 15px;
+      margin: 20px 0;
+      animation: celebrateGlow 2s infinite alternate;
+    }
+
+    @keyframes celebrateGlow {
+      0% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+      100% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.8); }
+    }
+
+    @media (max-width: 768px) {
+      .game-container {
+        padding: 20px;
+        margin: 10px;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .guess-row {
+        grid-template-columns: repeat(4, 50px) 1fr;
+        gap: 8px;
+        padding: 8px;
+      }
+
+      .digit-box {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+      }
+
+      .number-input {
+        width: 180px;
+        height: 50px;
+        font-size: 1.3rem;
+      }
+
+      .legend {
+        gap: 15px;
+      }
+
+      .game-info {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>🔢 Number Wordle</h1>
+    <p class="subtitle">Guess the 4-digit number!</p>
+    
+    <div class="game-info">
+      <span>Attempts: <span id="attempts">0/6</span></span>
+      <span>Coins: <span id="coins">0</span></span>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-box" style="background: var(--success);"></div>
+        <span>Correct digit & position</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-box" style="background: var(--warning);"></div>
+        <span>Correct digit, wrong position</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-box" style="background: var(--neutral);"></div>
+        <span>Not in number</span>
+      </div>
+    </div>
+
+    <div class="guess-grid" id="guessGrid"></div>
+
+    <div class="input-section" id="inputSection">
+      <input type="text" class="number-input" id="numberInput" maxlength="4" placeholder="0000">
+      <br>
+      <button class="btn" id="guessBtn">Make Guess</button>
+      <button class="btn" id="hintBtn">💡 Get Hint (50 coins)</button>
+    </div>
+
+    <div class="message hidden" id="gameMessage"></div>
+    <div class="hidden" id="endGame">
+      <button class="btn success" id="newGameBtn">🎮 New Game</button>
+      <button class="btn" id="homeBtn">🏠 Back to Hub</button>
+    </div>
+
+    <div class="rules">
+      <h3>How to Play:</h3>
+      <ul>
+        <li>Guess the secret 4-digit number</li>
+        <li>Each digit can be 0-9</li>
+        <li>Digits can repeat in the number</li>
+        <li>Green: Correct digit in correct position</li>
+        <li>Yellow: Correct digit in wrong position</li>
+        <li>Gray: Digit not in the number</li>
+        <li>You have 6 attempts to find the number</li>
+        <li>Earn coins based on how quickly you solve it!</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    let awardCoins = null;
+    let secretNumber = '';
+    let attempts = 0;
+    let maxAttempts = 6;
+    let gameOver = false;
+    let totalCoins = 0;
+    let hintsUsed = 0;
+
+    const guessGrid = document.getElementById('guessGrid');
+    const inputSection = document.getElementById('inputSection');
+    const gameMessage = document.getElementById('gameMessage');
+    const endGame = document.getElementById('endGame');
+    const attemptsEl = document.getElementById('attempts');
+    const coinsEl = document.getElementById('coins');
+    const guessBtn = document.getElementById('guessBtn');
+    const hintBtn = document.getElementById('hintBtn');
+    const newGameBtn = document.getElementById('newGameBtn');
+    const homeBtn = document.getElementById('homeBtn');
+    const numberInput = document.getElementById('numberInput');
+
+    // Generate random 4-digit number
+    function generateSecretNumber() {
+      secretNumber = '';
+      for (let i = 0; i < 4; i++) {
+        secretNumber += Math.floor(Math.random() * 10).toString();
+      }
+      console.log('Secret number:', secretNumber); // For testing
+    }
+
+    // Initialize game
+    function initGame() {
+      generateSecretNumber();
+      attempts = 0;
+      gameOver = false;
+      totalCoins = 0;
+      hintsUsed = 0;
+      guessGrid.innerHTML = '';
+      gameMessage.classList.add('hidden');
+      endGame.classList.add('hidden');
+      inputSection.classList.remove('hidden');
+      updateUI();
+      numberInput.value = '';
+      numberInput.focus();
+    }
+
+    // Update UI
+    function updateUI() {
+      attemptsEl.textContent = `${attempts}/${maxAttempts}`;
+      coinsEl.textContent = totalCoins;
+      
+      const hintCost = 50 + (hintsUsed * 25);
+      hintBtn.textContent = `💡 Get Hint (${hintCost} coins)`;
+      hintBtn.disabled = totalCoins < hintCost;
+    }
+
+    // Validate input
+    function validateInput(input) {
+      if (input.length !== 4) {
+        showMessage('Please enter exactly 4 digits', 'error');
+        return false;
+      }
+      
+      if (!/^\d{4}$/.test(input)) {
+        showMessage('Please enter only numbers', 'error');
+        return false;
+      }
+      
+      return true;
+    }
+
+    // Make guess
+    function makeGuess() {
+      if (gameOver) return;
+      
+      const guess = numberInput.value.trim();
+      
+      if (!validateInput(guess)) {
+        return;
+      }
+      
+      attempts++;
+      updateUI();
+      
+      const feedback = checkGuess(guess);
+      displayGuess(guess, feedback);
+      
+      if (guess === secretNumber) {
+        winGame();
+      } else if (attempts >= maxAttempts) {
+        loseGame();
+      } else {
+        numberInput.value = '';
+        numberInput.focus();
+      }
+    }
+
+    // Check guess against secret number
+    function checkGuess(guess) {
+      const feedback = [];
+      const secretArray = secretNumber.split('');
+      const guessArray = guess.split('');
+      const usedSecretIndices = new Set();
+      const usedGuessIndices = new Set();
+      
+      // First pass: check for correct positions
+      for (let i = 0; i < 4; i++) {
+        if (guessArray[i] === secretArray[i]) {
+          feedback[i] = 'correct';
+          usedSecretIndices.add(i);
+          usedGuessIndices.add(i);
+        }
+      }
+      
+      // Second pass: check for correct digits in wrong positions
+      for (let i = 0; i < 4; i++) {
+        if (feedback[i]) continue; // Already processed
+        
+        const digit = guessArray[i];
+        let found = false;
+        
+        for (let j = 0; j < 4; j++) {
+          if (!usedSecretIndices.has(j) && secretArray[j] === digit) {
+            feedback[i] = 'position';
+            usedSecretIndices.add(j);
+            found = true;
+            break;
+          }
+        }
+        
+        if (!found) {
+          feedback[i] = 'wrong';
+        }
+      }
+      
+      return feedback;
+    }
+
+    // Display guess result
+    function displayGuess(guess, feedback) {
+      const row = document.createElement('div');
+      row.className = 'guess-row';
+      
+      // Create digit boxes
+      for (let i = 0; i < 4; i++) {
+        const box = document.createElement('div');
+        box.className = `digit-box ${feedback[i]}`;
+        box.textContent = guess[i];
+        row.appendChild(box);
+      }
+      
+      // Add feedback text
+      const feedbackText = document.createElement('div');
+      feedbackText.className = 'feedback';
+      const correctCount = feedback.filter(f => f === 'correct').length;
+      const positionCount = feedback.filter(f => f === 'position').length;
+      feedbackText.textContent = `${correctCount} correct, ${positionCount} wrong position`;
+      row.appendChild(feedbackText);
+      
+      guessGrid.appendChild(row);
+      guessGrid.scrollTop = guessGrid.scrollHeight;
+    }
+
+    // Get hint
+    function getHint() {
+      if (gameOver) return;
+      
+      const hintCost = 50 + (hintsUsed * 25);
+      if (totalCoins < hintCost) {
+        showMessage('Not enough coins for hint!', 'error');
+        return;
+      }
+      
+      totalCoins -= hintCost;
+      hintsUsed++;
+      
+      const randomPosition = Math.floor(Math.random() * 4);
+      const digit = secretNumber[randomPosition];
+      
+      showMessage(`Hint: Position ${randomPosition + 1} is ${digit}`, 'warning');
+      updateUI();
+    }
+
+    // Win game
+    function winGame() {
+      gameOver = true;
+      inputSection.classList.add('hidden');
+      
+      // Calculate coins based on attempts
+      const baseCoins = 100;
+      const attemptBonus = Math.max(0, (maxAttempts - attempts) * 20);
+      const coinsEarned = baseCoins + attemptBonus;
+      totalCoins += coinsEarned;
+      
+      updateUI();
+      
+      gameMessage.innerHTML = `
+        <div class="celebration">
+          <h2>🎉 Congratulations! 🎉</h2>
+          <p>You found the number <strong>${secretNumber}</strong> in ${attempts} attempts!</p>
+          <p><strong>+${coinsEarned} coins earned!</strong></p>
+          <p>Base: ${baseCoins} + Attempt Bonus: ${attemptBonus}</p>
+        </div>
+      `;
+      gameMessage.classList.remove('hidden');
+      endGame.classList.remove('hidden');
+      
+      // Award coins to parent window
+      if (awardCoins && coinsEarned > 0) {
+        awardCoins('number-wordle', coinsEarned);
+      }
+    }
+
+    // Lose game
+    function loseGame() {
+      gameOver = true;
+      inputSection.classList.add('hidden');
+      
+      // Small consolation coins
+      const consolationCoins = 10;
+      totalCoins += consolationCoins;
+      updateUI();
+      
+      gameMessage.innerHTML = `
+        <div class="message error">
+          <h3>💥 Game Over!</h3>
+          <p>The number was <strong>${secretNumber}</strong></p>
+          <p>Better luck next time! +${consolationCoins} coins</p>
+        </div>
+      `;
+      gameMessage.classList.remove('hidden');
+      endGame.classList.remove('hidden');
+      
+      // Award consolation coins
+      if (awardCoins && consolationCoins > 0) {
+        awardCoins('number-wordle', consolationCoins);
+      }
+    }
+
+    // Show message
+    function showMessage(text, type = 'error') {
+      const existingMessage = document.querySelector('.temp-message');
+      if (existingMessage) {
+        existingMessage.remove();
+      }
+      
+      const message = document.createElement('div');
+      message.className = `message ${type} temp-message`;
+      message.textContent = text;
+      
+      inputSection.appendChild(message);
+      
+      setTimeout(() => {
+        message.remove();
+      }, 3000);
+    }
+
+    // Format number input
+    function formatNumberInput() {
+      let value = numberInput.value.replace(/\D/g, ''); // Remove non-digits
+      if (value.length > 4) {
+        value = value.substring(0, 4);
+      }
+      numberInput.value = value;
+    }
+
+    // Event listeners
+    numberInput.addEventListener('input', formatNumberInput);
+    
+    numberInput.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        makeGuess();
+      }
+    });
+
+    guessBtn.addEventListener('click', makeGuess);
+    hintBtn.addEventListener('click', getHint);
+    newGameBtn.addEventListener('click', initGame);
+    
+    homeBtn.addEventListener('click', () => {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'gameOver' }, '*');
+      }
+    });
+
+    // Listen for messages from parent
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'setAwardCoins') {
+        awardCoins = (gameId, coins) => {
+          window.parent.postMessage({
+            type: 'awardCoins',
+            gameId: gameId,
+            coins: coins
+          }, '*');
+        };
+      }
+    });
+
+    // Initialize game
+    initGame();
+  </script>
+</body>
+</html>
