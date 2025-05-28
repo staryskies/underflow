@@ -371,16 +371,13 @@
     const homeBtn = document.getElementById('homeBtn');
     const numberInput = document.getElementById('numberInput');
 
-    // Generate random 4-digit number
     function generateSecretNumber() {
       secretNumber = '';
       for (let i = 0; i < 4; i++) {
         secretNumber += Math.floor(Math.random() * 10).toString();
       }
-      console.log('Secret number:', secretNumber); // For testing
     }
 
-    // Initialize game
     function initGame() {
       generateSecretNumber();
       attempts = 0;
@@ -396,47 +393,34 @@
       numberInput.focus();
     }
 
-    // Update UI
     function updateUI() {
       attemptsEl.textContent = `${attempts}/${maxAttempts}`;
       coinsEl.textContent = totalCoins;
-      
       const hintCost = 50 + (hintsUsed * 25);
       hintBtn.textContent = `💡 Get Hint (${hintCost} coins)`;
       hintBtn.disabled = totalCoins < hintCost;
     }
 
-    // Validate input
     function validateInput(input) {
       if (input.length !== 4) {
         showMessage('Please enter exactly 4 digits', 'error');
         return false;
       }
-      
       if (!/^\d{4}$/.test(input)) {
         showMessage('Please enter only numbers', 'error');
         return false;
       }
-      
       return true;
     }
 
-    // Make guess
     function makeGuess() {
       if (gameOver) return;
-      
       const guess = numberInput.value.trim();
-      
-      if (!validateInput(guess)) {
-        return;
-      }
-      
+      if (!validateInput(guess)) return;
       attempts++;
       updateUI();
-      
       const feedback = checkGuess(guess);
       displayGuess(guess, feedback);
-      
       if (guess === secretNumber) {
         winGame();
       } else if (attempts >= maxAttempts) {
@@ -447,15 +431,12 @@
       }
     }
 
-    // Check guess against secret number
     function checkGuess(guess) {
       const feedback = [];
       const secretArray = secretNumber.split('');
       const guessArray = guess.split('');
       const usedSecretIndices = new Set();
       const usedGuessIndices = new Set();
-      
-      // First pass: check for correct positions
       for (let i = 0; i < 4; i++) {
         if (guessArray[i] === secretArray[i]) {
           feedback[i] = 'correct';
@@ -463,14 +444,10 @@
           usedGuessIndices.add(i);
         }
       }
-      
-      // Second pass: check for correct digits in wrong positions
       for (let i = 0; i < 4; i++) {
-        if (feedback[i]) continue; // Already processed
-        
+        if (feedback[i]) continue;
         const digit = guessArray[i];
         let found = false;
-        
         for (let j = 0; j < 4; j++) {
           if (!usedSecretIndices.has(j) && secretArray[j] === digit) {
             feedback[i] = 'position';
@@ -479,73 +456,55 @@
             break;
           }
         }
-        
         if (!found) {
           feedback[i] = 'wrong';
         }
       }
-      
       return feedback;
     }
 
-    // Display guess result
     function displayGuess(guess, feedback) {
       const row = document.createElement('div');
       row.className = 'guess-row';
-      
-      // Create digit boxes
       for (let i = 0; i < 4; i++) {
         const box = document.createElement('div');
         box.className = `digit-box ${feedback[i]}`;
         box.textContent = guess[i];
         row.appendChild(box);
       }
-      
-      // Add feedback text
       const feedbackText = document.createElement('div');
       feedbackText.className = 'feedback';
       const correctCount = feedback.filter(f => f === 'correct').length;
       const positionCount = feedback.filter(f => f === 'position').length;
       feedbackText.textContent = `${correctCount} correct, ${positionCount} wrong position`;
       row.appendChild(feedbackText);
-      
       guessGrid.appendChild(row);
       guessGrid.scrollTop = guessGrid.scrollHeight;
     }
 
-    // Get hint
     function getHint() {
       if (gameOver) return;
-      
       const hintCost = 50 + (hintsUsed * 25);
       if (totalCoins < hintCost) {
         showMessage('Not enough coins for hint!', 'error');
         return;
       }
-      
       totalCoins -= hintCost;
       hintsUsed++;
-      
       const randomPosition = Math.floor(Math.random() * 4);
       const digit = secretNumber[randomPosition];
-      
       showMessage(`Hint: Position ${randomPosition + 1} is ${digit}`, 'warning');
       updateUI();
     }
 
-    // Win game
     function winGame() {
       gameOver = true;
       inputSection.classList.add('hidden');
-      
-      // Calculate coins based on attempts
       const baseCoins = 100;
       const attemptBonus = Math.max(0, (maxAttempts - attempts) * 20);
       const coinsEarned = baseCoins + attemptBonus;
       totalCoins += coinsEarned;
-      
       updateUI();
-      
       gameMessage.innerHTML = `
         <div class="celebration">
           <h2>🎉 Congratulations! 🎉</h2>
@@ -556,23 +515,17 @@
       `;
       gameMessage.classList.remove('hidden');
       endGame.classList.remove('hidden');
-      
-      // Award coins to parent window
       if (awardCoins && coinsEarned > 0) {
         awardCoins('number-wordle', coinsEarned);
       }
     }
 
-    // Lose game
     function loseGame() {
       gameOver = true;
       inputSection.classList.add('hidden');
-      
-      // Small consolation coins
       const consolationCoins = 10;
       totalCoins += consolationCoins;
       updateUI();
-      
       gameMessage.innerHTML = `
         <div class="message error">
           <h3>💥 Game Over!</h3>
@@ -582,43 +535,34 @@
       `;
       gameMessage.classList.remove('hidden');
       endGame.classList.remove('hidden');
-      
-      // Award consolation coins
       if (awardCoins && consolationCoins > 0) {
         awardCoins('number-wordle', consolationCoins);
       }
     }
 
-    // Show message
     function showMessage(text, type = 'error') {
       const existingMessage = document.querySelector('.temp-message');
       if (existingMessage) {
         existingMessage.remove();
       }
-      
       const message = document.createElement('div');
       message.className = `message ${type} temp-message`;
       message.textContent = text;
-      
       inputSection.appendChild(message);
-      
       setTimeout(() => {
         message.remove();
       }, 3000);
     }
 
-    // Format number input
     function formatNumberInput() {
-      let value = numberInput.value.replace(/\D/g, ''); // Remove non-digits
+      let value = numberInput.value.replace(/\D/g, '');
       if (value.length > 4) {
         value = value.substring(0, 4);
       }
       numberInput.value = value;
     }
 
-    // Event listeners
     numberInput.addEventListener('input', formatNumberInput);
-    
     numberInput.addEventListener('keydown', function(event) {
       if (event.key === 'Enter') {
         makeGuess();
@@ -635,7 +579,6 @@
       }
     });
 
-    // Listen for messages from parent
     window.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'setAwardCoins') {
         awardCoins = (gameId, coins) => {
@@ -648,7 +591,6 @@
       }
     });
 
-    // Initialize game
     initGame();
   </script>
 </body>

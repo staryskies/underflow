@@ -6,8 +6,8 @@
   <title>Memory Mole</title>
   <style>
     :root {
-      --primary: #4CAF50;
-      --primary-dark: #45a049;
+      --primary: #4A90E2;
+      --primary-dark: #357ABD;
       --success: #4CAF50;
       --warning: #F5A623;
       --neutral: #6B7280;
@@ -289,15 +289,10 @@
       for (let i = 0; i < currentSequence.length; i++) {
         const holeIndex = currentSequence[i];
         const hole = document.querySelector(`[data-index="${holeIndex}"]`);
-        
         sequenceFill.style.width = `${((i + 1) / currentSequence.length) * 100}%`;
-        
         hole.classList.add('mole');
-        
         await new Promise(resolve => setTimeout(resolve, 800));
-        
         hole.classList.remove('mole');
-        
         await new Promise(resolve => setTimeout(resolve, 400));
       }
 
@@ -310,7 +305,6 @@
       sequenceInfo.textContent = `Click hole ${userSequence.length + 1} of ${currentSequence.length}`;
       sequenceFill.style.width = '0%';
       isGameActive = true;
-      
       document.querySelectorAll('.hole').forEach(hole => {
         hole.classList.add('clickable');
       });
@@ -321,15 +315,12 @@
 
       const clickedIndex = parseInt(event.target.dataset.index);
       const expectedIndex = currentSequence[userSequence.length];
-      
       userSequence.push(clickedIndex);
-      
       sequenceFill.style.width = `${(userSequence.length / currentSequence.length) * 100}%`;
       
       if (clickedIndex === expectedIndex) {
         event.target.classList.add('correct');
         setTimeout(() => event.target.classList.remove('correct'), 500);
-        
         if (userSequence.length === currentSequence.length) {
           completeSequence();
         } else {
@@ -347,13 +338,10 @@
       sequencesCompleted++;
       const coinsEarned = level * 10;
       totalCoins += coinsEarned;
-      
       document.querySelectorAll('.hole').forEach(hole => {
         hole.classList.remove('clickable');
       });
-
       updateUI();
-      
       if (sequencesCompleted >= sequencesPerLevel) {
         levelComplete();
       } else {
@@ -370,12 +358,9 @@
       sequencesCompleted = 0;
       const bonusCoins = level * 20;
       totalCoins += bonusCoins;
-      
       updateUI();
-      
       phaseEl.textContent = `🎉 Level ${level - 1} Complete!`;
       sequenceInfo.textContent = `Bonus: ${bonusCoins} coins! Starting Level ${level}...`;
-      
       setTimeout(() => {
         generateSequence();
         showSequence();
@@ -385,7 +370,6 @@
     function gameOver(won) {
       isGameActive = false;
       phase = 'ended';
-      
       document.querySelectorAll('.hole').forEach(hole => {
         hole.classList.remove('clickable');
       });
@@ -412,7 +396,6 @@
       
       endMessage.classList.remove('hidden');
       restartBtn.classList.remove('hidden');
-      
       if (awardCoins && totalCoins > 0) {
         awardCoins('memory-mole', totalCoins);
       }
@@ -432,10 +415,8 @@
       userSequence = [];
       phase = 'watch';
       isGameActive = false;
-      
       endMessage.classList.add('hidden');
       restartBtn.classList.add('hidden');
-      
       updateUI();
       startGame();
     }

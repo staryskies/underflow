@@ -229,7 +229,7 @@
       background: white;
       padding: 30px;
       border-radius: 15px;
-      max-width: 500px;
+      max-width: 600px;
       width: 90%;
       text-align: center;
     }
@@ -239,13 +239,13 @@
       color: var(--dark);
     }
 
-    .shop-items {
+    .shop-items, .prize-items {
       display: grid;
       gap: 15px;
       margin-bottom: 20px;
     }
 
-    .shop-item {
+    .shop-item, .prize-item {
       border: 2px solid #e1e5e9;
       border-radius: 10px;
       padding: 20px;
@@ -253,17 +253,17 @@
       transition: all 0.3s ease;
     }
 
-    .shop-item:hover {
+    .shop-item:hover, .prize-item:hover {
       border-color: var(--primary);
       background: var(--light);
     }
 
-    .shop-item h3 {
+    .shop-item h3, .prize-item h3 {
       color: var(--dark);
       margin-bottom: 5px;
     }
 
-    .shop-item p {
+    .shop-item p, .prize-item p {
       color: var(--neutral);
       margin-bottom: 10px;
     }
@@ -293,12 +293,26 @@
       font-size: 1.2rem;
       z-index: 9999;
       box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
     }
 
     #authMessage {
       color: var(--danger);
       margin-top: 10px;
       font-weight: 500;
+    }
+
+    .prizes-section {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+
+    .prizes-section h3 {
+      color: var(--dark);
+      margin-bottom: 15px;
     }
 
     @media (max-width: 768px) {
@@ -356,16 +370,20 @@
         <div class="user-info">
           <h2 id="playerName">Player</h2>
           <div class="currency">
-            <span>🪙 <span id="memoryCoins">500</span></span>
+            <span>🎟️ <span id="tickets">2</span></span>
             <span>🎫 <span id="plays">5</span></span>
-            <span>🟡 <span id="yellowTickets">0</span></span>
-            <span>🔵 <span id="blueTickets">0</span></span>
+            <span>🪙 <span id="coins">500</span></span>
           </div>
         </div>
         <div class="button-group">
           <button class="btn shop" onclick="openShop()">🛒 Shop</button>
           <button class="btn secondary" id="logoutBtn">🚪 Logout</button>
         </div>
+      </div>
+
+      <div class="prizes-section">
+        <h3>🏆 Your Prizes</h3>
+        <div class="prize-items" id="userPrizes"></div>
       </div>
 
       <div class="games-grid" id="gamesGrid">
@@ -386,18 +404,12 @@
 
     <div id="shopModal" class="modal hidden">
       <div class="modal-content">
-        <h2>🛒 Game Shop</h2>
-        <div class="shop-items">
-          <div class="shop-item" onclick="buyTicket('yellow')">
-            <h3>🟡 Yellow Ticket</h3>
-            <p>Redeem for 4 game plays (Admin Approval Required)</p>
-            <span class="price">100 coins</span>
-          </div>
-          <div class="shop-item" onclick="buyTicket('blue')">
-            <h3>🔵 Blue Ticket</h3>
-            <p>Redeem for 9 game plays (Admin Approval Required)</p>
-            <span class="price">200 coins</span>
-          </div>
+        <h2>🛒 Prize Shop</h2>
+        <div class="shop-items" id="shopItems"></div>
+        <div class="shop-item" onclick="convertTicket()">
+          <h3>🎟️ Convert Tickets to Plays</h3>
+          <p>Use 1 ticket to get 1 play</p>
+          <span class="price">1 ticket</span>
         </div>
         <button class="btn" onclick="closeShop()">Close</button>
       </div>
@@ -405,14 +417,37 @@
   </div>
 
   <script>
-    let ws = null;
-
     function updateUserUI(user) {
       document.getElementById('playerName').textContent = user.username;
-      document.getElementById('memoryCoins').textContent = user.memory_coins;
+      document.getElementById('tickets').textContent = user.tickets;
       document.getElementById('plays').textContent = user.plays;
-      document.getElementById('yellowTickets').textContent = user.yellow_tickets;
-      document.getElementById('blueTickets').textContent = user.blue_tickets;
+      document.getElementById('coins').textContent = user.coins;
+
+      const prizeList = document.getElementById('userPrizes');
+      prizeList.innerHTML = user.prizes.length > 0
+        ? user.prizes.map(p => `<div class="prize-item"><h3>${p.name}</h3><p>${p.description}</p><p>Acquired: ${new Date(p.acquired_at).toLocaleDateString()}</p></div>`).join('')
+        : '<p>No prizes yet. Visit the shop to buy some!</p>';
+    }
+
+    async function loadShopItems() {
+      try {
+        const response = await fetch('/api/prizes');
+        const result = await response.json();
+        if (result.success) {
+          const shopItems = document.getElementById('shopItems');
+          shopItems.innerHTML = result.prizes.map(prize => `
+            <div class="shop-item" onclick="buyPrize(${prize.prize_id})">
+              <h3>${prize.name}</h3>
+              <p>${prize.description}</p>
+              <span class="price">${prize.coin_cost} coins</span>
+              <p>Stock: ${prize.stock}</p>
+            </div>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('Error loading shop items:', error);
+        showMessage('Error loading shop');
+      }
     }
 
     async function signIn(username, passcode) {
@@ -428,7 +463,7 @@
           document.getElementById('authSection').classList.add('hidden');
           document.getElementById('mainSection').classList.remove('hidden');
           updateUserUI(result.user);
-          connectWebSocket();
+          await loadShopItems();
         } else {
           showMessage(result.message);
         }
@@ -439,10 +474,6 @@
     }
 
     function signOut() {
-      if (ws) {
-        ws.close();
-        ws = null;
-      }
       localStorage.removeItem('gameHubUser');
       document.getElementById('authSection').classList.remove('hidden');
       document.getElementById('mainSection').classList.add('hidden');
@@ -451,37 +482,7 @@
       document.getElementById('passcodeInput').value = '';
     }
 
-    function connectWebSocket() {
-      ws = new WebSocket(`wss://${window.location.host}`);
-      
-      ws.onopen = () => {
-        console.log('Connected to WebSocket server');
-      };
-
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.type === 'redemption-result') {
-          const user = JSON.parse(localStorage.getItem('gameHubUser'));
-          if (user && user.username === data.username) {
-            if (data.approved) {
-              user.plays = parseInt(user.plays) + data.plays;
-              user[`${data.ticketType}_tickets`] = parseInt(user[`${data.ticketType}_tickets`]) - 1;
-              localStorage.setItem('gameHubUser', JSON.stringify(user));
-              updateUserUI(user);
-              showSuccessMessage(`Redeemed ${data.ticketType} ticket! +${data.plays} plays`);
-            } else {
-              showMessage(`Redemption of ${data.ticketType} ticket was rejected by admin`);
-            }
-          }
-        }
-      };
-
-      ws.onclose = () => {
-        console.log('Disconnected from WebSocket server');
-      };
-    }
-
-    async function buyTicket(type) {
+    async function convertTicket() {
       const user = JSON.parse(localStorage.getItem('gameHubUser'));
       if (!user) {
         showMessage('Please sign in first.');
@@ -489,26 +490,26 @@
       }
 
       try {
-        const response = await fetch('/api/buy-ticket', {
+        const response = await fetch('/api/convert-ticket', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: user.username, ticketType: type })
+          body: JSON.stringify({ username: user.username, ticketCount: 1 })
         });
         const result = await response.json();
         if (result.success) {
           localStorage.setItem('gameHubUser', JSON.stringify(result.user));
           updateUserUI(result.user);
-          showSuccessMessage(`Purchased ${type} ticket!`);
+          showSuccessMessage('Converted 1 ticket to 1 play!');
         } else {
-          showMessage(result.message || 'Failed to purchase ticket');
+          showMessage(result.message || 'Failed to convert ticket');
         }
       } catch (error) {
-        console.error('Error buying ticket:', error);
+        console.error('Error converting ticket:', error);
         showMessage('Error connecting to server');
       }
     }
 
-    async function redeemTicket(type) {
+    async function buyPrize(prizeId) {
       const user = JSON.parse(localStorage.getItem('gameHubUser'));
       if (!user) {
         showMessage('Please sign in first.');
@@ -516,19 +517,22 @@
       }
 
       try {
-        const response = await fetch('/api/redeem-ticket', {
+        const response = await fetch('/api/buy-prize', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: user.username, ticketType: type })
+          body: JSON.stringify({ username: user.username, prizeId })
         });
         const result = await response.json();
         if (result.success) {
-          showMessage(`Redemption request for ${type} ticket sent. Waiting for admin approval...`);
+          localStorage.setItem('gameHubUser', JSON.stringify(result.user));
+          updateUserUI(result.user);
+          await loadShopItems();
+          showSuccessMessage(`Purchased prize!`);
         } else {
-          showMessage(result.message || 'Failed to request ticket redemption');
+          showMessage(result.message || 'Failed to purchase prize');
         }
       } catch (error) {
-        console.error('Error redeeming ticket:', error);
+        console.error('Error buying prize:', error);
         showMessage('Error connecting to server');
       }
     }
@@ -548,10 +552,8 @@
         });
         const result = await response.json();
         if (result.success) {
-          user.plays -= 1;
-          user.games_played += 1;
-          localStorage.setItem('gameHubUser', JSON.stringify(user));
-          updateUserUI(user);
+          localStorage.setItem('gameHubUser', JSON.stringify(result.user));
+          updateUserUI(result.user);
           return true;
         } else {
           showMessage(result.message || 'Failed to start game');
@@ -648,7 +650,7 @@
             document.getElementById('authSection').classList.add('hidden');
             document.getElementById('mainSection').classList.remove('hidden');
             updateUserUI(result.user);
-            connectWebSocket();
+            await loadShopItems();
           } else {
             signOut();
           }
