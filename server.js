@@ -10,11 +10,17 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-// Create database tables
+// Create or recreate database tables
 async function initDatabase() {
     try {
+        // Drop tables in reverse order to avoid foreign key constraints
+        await pool.query('DROP TABLE IF EXISTS user_prizes');
+        await pool.query('DROP TABLE IF EXISTS prizes');
+        await pool.query('DROP TABLE IF EXISTS users');
+
+        // Create users table
         await pool.query(`
-            CREATE TABLE IF NOT EXISTS users (
+            CREATE TABLE users (
                 username VARCHAR(50) PRIMARY KEY,
                 passcode VARCHAR(4) NOT NULL,
                 tickets INTEGER DEFAULT 2,
@@ -25,8 +31,9 @@ async function initDatabase() {
             );
         `);
 
+        // Create prizes table
         await pool.query(`
-            CREATE TABLE IF NOT EXISTS prizes (
+            CREATE TABLE prizes (
                 prize_id SERIAL PRIMARY KEY,
                 name VARCHAR(100) NOT NULL,
                 description TEXT NOT NULL,
@@ -35,8 +42,9 @@ async function initDatabase() {
             );
         `);
 
+        // Create user_prizes table
         await pool.query(`
-            CREATE TABLE IF NOT EXISTS user_prizes (
+            CREATE TABLE user_prizes (
                 id SERIAL PRIMARY KEY,
                 username VARCHAR(50) REFERENCES users(username),
                 prize_id INTEGER REFERENCES prizes(prize_id),
@@ -44,29 +52,20 @@ async function initDatabase() {
             );
         `);
 
-        // Insert initial prizes if none exist
-        const prizeCount = await pool.query('SELECT COUNT(*) FROM prizes');
-        if (parseInt(prizeCount.rows[0].count) === 0) {
-            await pool.query(`
-                INSERT INTO prizes (name, description, coin_cost, stock) VALUES
-                ('Gold Badge', 'A shiny badge to show off your skills', 200, 50),
-                ('Star Skin', 'A starry skin for your profile', 300, 30),
-                ('Super Trophy', 'A trophy for top players', 500, 20);
-            `);
-        }
+        // Insert initial prizes
+        await pool.query(`
+            INSERT INTO prizes (name, description, coin_cost, stock) VALUES
+            ('Gold Badge', 'A shiny badge to show off your skills', 200, 50),
+            ('Star Skin', 'A starry skin for your profile', 300, 30),
+            ('Super Trophy', 'A trophy for top players', 500, 20);
+        `);
 
-        console.log('Database tables initialized successfully');
+        console.log('Database tables recreated successfully');
     } catch (error) {
         console.error('Error initializing database:', error);
         throw error;
     }
 }
-
-// Initialize database
-initDatabase().catch(err => {
-    console.error('Failed to initialize database, exiting:', err);
-    process.exit(1);
-});
 
 // Middleware
 app.use(express.static(path.join(__dirname, 'public')));
@@ -350,8 +349,18 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+// Initialize database and start server
+async function startServer() {
+    try {
+        await initDatabase();
+        const PORT = process.env.PORT || 3000;
+        app.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+    } catch (error) {
+        console.error('Failed to initialize database, exiting:', error);
+        process.exit(1);
+    }
+}
+
+startServer();
