@@ -10,16 +10,17 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+// Admin password for ticket conversion
+const ADMIN_PASSWORD = 'password123';
+
 // Create or recreate database tables
 async function initDatabase() {
     try {
-        // Drop tables in reverse order to avoid foreign key constraints
         await pool.query('DROP TABLE IF EXISTS redemptions CASCADE');
         await pool.query('DROP TABLE IF EXISTS user_prizes CASCADE');
         await pool.query('DROP TABLE IF EXISTS prizes CASCADE');
         await pool.query('DROP TABLE IF EXISTS users CASCADE');
 
-        // Create users table
         await pool.query(`
             CREATE TABLE users (
                 username VARCHAR(50) PRIMARY KEY,
@@ -32,7 +33,6 @@ async function initDatabase() {
             );
         `);
 
-        // Create prizes table
         await pool.query(`
             CREATE TABLE prizes (
                 prize_id SERIAL PRIMARY KEY,
@@ -43,7 +43,6 @@ async function initDatabase() {
             );
         `);
 
-        // Create user_prizes table
         await pool.query(`
             CREATE TABLE user_prizes (
                 id SERIAL PRIMARY KEY,
@@ -53,7 +52,6 @@ async function initDatabase() {
             );
         `);
 
-        // Create redemptions table
         await pool.query(`
             CREATE TABLE redemptions (
                 redemption_id SERIAL PRIMARY KEY,
@@ -63,7 +61,6 @@ async function initDatabase() {
             );
         `);
 
-        // Insert initial prizes
         await pool.query(`
             INSERT INTO prizes (name, description, coin_cost, stock) VALUES
             ('Gold Badge', 'A shiny badge to show off your skills', 200, 50),
@@ -163,9 +160,13 @@ app.post('/api/signin', async (req, res) => {
 
 // API to convert ticket to plays
 app.post('/api/convert-ticket', async (req, res) => {
-    const { username, ticketCount } = req.body;
-    if (!username || !Number.isInteger(ticketCount) || ticketCount <= 0) {
+    const { username, ticketCount, adminPassword } = req.body;
+    if (!username || !Number.isInteger(ticketCount) || ticketCount <= 0 || !adminPassword) {
         return res.status(400).json({ success: false, message: 'Invalid request' });
+    }
+
+    if (adminPassword !== ADMIN_PASSWORD) {
+        return res.status(401).json({ success: false, message: 'Incorrect admin password' });
     }
 
     try {
