@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pattern Match</title>
+  <style>
+    :root {
+      --primary: #4A90E2;
+      --primary-dark: #357ABD;
+      --success: #4CAF50;
+      --warning: #F5A623;
+      --neutral: #6B7280;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      min-height: 100vh;
+    }
+
+    .game-container {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      text-align: center;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #1F2937;
+      margin-bottom: 20px;
+    }
+
+    .game-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 80px);
+      gap: 5px;
+      margin: 20px auto;
+    }
+
+    .tile {
+      width: 80px;
+      height: 80px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      background-color: gray;
+    }
+
+    .red { background-color: #EF4444; }
+    .blue { background-color: #3B82F6; }
+    .green { background-color: #10B981; }
+    .purple { background-color: #8B5CF6; }
+
+    .btn {
+      background: var(--primary);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 10px;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .message {
+      font-size: 16px;
+      margin-bottom: 10px;
+      min-height: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>🌈 Pattern Match</h1>
+    <div class="game-info">
+      <span>Level: <span id="level">1</span></span>
+      <span>Coins: <span id="coins">0</span></span>
+      <span>Mistakes: <span id="mistakes">0</span></span>
+    </div>
+    <div class="message" id="tempMessage"></div>
+    <div class="grid" id="grid"></div>
+    <div class="message hidden" id="endMessage"></div>
+    <button class="btn hidden" id="restartBtn">Play Again</button>
+    <button class="btn" id="homeBtn">🏠 Back to Hub</button>
+  </div>
+
+  <script>
+    let awardCoins = null;
+    let level = 1;
+    let totalCoins = 0;
+    let mistakes = 0;
+    let pattern = [];
+    let userPattern = Array(16).fill(null);
+    let isGameActive = false;
+    let perfectLevel = true;
+    const colors = ['red', 'blue', 'green', 'purple'];
+    const grid = document.getElementById('grid');
+    const levelEl = document.getElementById('level');
+    const coinsEl = document.getElementById('coins');
+    const mistakesEl = document.getElementById('mistakes');
+    const endMessage = document.getElementById('endMessage');
+    const tempMessage = document.getElementById('tempMessage');
+    const restartBtn = document.getElementById('restartBtn');
+    const homeBtn = document.getElementById('homeBtn');
+
+    function initGrid() {
+      grid.innerHTML = '';
+      pattern = [];
+      userPattern = Array(16).fill(null);
+      perfectLevel = true;
+      for (let i = 0; i < 16; i++) {
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        pattern.push(color);
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        tile.dataset.index = i;
+        tile.addEventListener('click', handleTileClick);
+        grid.appendChild(tile);
+      }
+      showPattern();
+    }
+
+    function showPattern() {
+      document.querySelectorAll('.tile').forEach((tile, idx) => {
+        tile.classList.add(pattern[idx]);
+      });
+      tempMessage.textContent = 'Memorize the pattern!';
+      setTimeout(() => {
+        document.querySelectorAll('.tile').forEach(tile => {
+          tile.className = 'tile';
+        });
+        tempMessage.textContent = '';
+        isGameActive = true;
+      }, 3000);
+    }
+
+    function handleTileClick(event) {
+      if (!isGameActive) return;
+      const index = parseInt(event.target.dataset.index);
+      const currentColor = userPattern[index];
+      const nextColorIdx = currentColor
+        ? (colors.indexOf(currentColor) + 1) % colors.length
+        : 0;
+      const nextColor = colors[nextColorIdx];
+      event.target.classList.remove(...colors);
+      event.target.classList.add(nextColor);
+      userPattern[index] = nextColor;
+      if (nextColor !== pattern[index]) {
+        mistakes++;
+        perfectLevel = false;
+        mistakesEl.textContent = mistakes;
+        tempMessage.textContent = 'Mistake! Try again.';
+        setTimeout(() => { tempMessage.textContent = ''; }, 1000);
+      }
+      if (userPattern.every(color => color !== null)) {
+        checkPattern();
+      }
+    }
+
+    function checkPattern() {
+      isGameActive = false;
+      const isCorrect = pattern.every((color, idx) => color === userPattern[idx]);
+      if (isCorrect) {
+        totalCoins += 12;
+        if (perfectLevel) totalCoins += 50;
+        level++;
+        coinsEl.textContent = totalCoins;
+        levelEl.textContent = level;
+        endMessage.textContent = '✅ Level Complete! Starting next level...';
+        endMessage.classList.remove('hidden');
+        setTimeout(() => {
+          endMessage.classList.add('hidden');
+          initGrid();
+        }, 2000);
+      } else {
+        endGame();
+      }
+    }
+
+    function endGame() {
+      isGameActive = false;
+      endMessage.textContent = `😢 Game Over! Reached Level ${level}, Coins: ${totalCoins}`;
+      endMessage.classList.remove('hidden');
+      restartBtn.classList.remove('hidden');
+      if (awardCoins && totalCoins > 0) {
+        awardCoins('pattern-match', totalCoins);
+      }
+    }
+
+    function restartGame() {
+      level = 1;
+      totalCoins = 0;
+      mistakes = 0;
+      levelEl.textContent = level;
+      coinsEl.textContent = totalCoins;
+      mistakesEl.textContent = mistakes;
+      endMessage.classList.add('hidden');
+      restartBtn.classList.add('hidden');
+      initGrid();
+    }
+
+    restartBtn.addEventListener('click', restartGame);
+
+    homeBtn.addEventListener('click', () => {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'gameOver' }, '*');
+      }
+    });
+
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'setTimeout') {
+        awardCoins = (gameId, coins) => {
+          window.parent.postMessage({ type: 'awardCoins', gameId, coins }, '*');
+        };
+      }
+    });
+
+    initGrid();
+  </script>
+</body>
+</html>

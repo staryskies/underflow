@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Maze</title>
+  <style>
+    :root {
+      --primary: #4A90E2;
+      --primary-dark: #357ABD;
+      --success: #4CAF50;
+      --warning: #F5A623;
+      --neutral: #6B7280;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      min-height: 100vh;
+    }
+
+    .game-container {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      text-align: center;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #1F2937;
+      margin-bottom: 20px;
+    }
+
+    .game-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .maze {
+      display: grid;
+      grid-template-columns: repeat(6, 50px);
+      gap: 2px;
+      margin: 20px auto;
+    }
+
+    .cell {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      border: 1px solid #D1D5DB;
+    }
+
+    .wall {
+      background: #1F2937;
+    }
+
+    .path {
+      background: #A5B4FC;
+    }
+
+    .player {
+      background: #4CAF50;
+    }
+
+    .end {
+      background: #F87171;
+    }
+
+    .btn {
+      background: var(--primary);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 10px;
+    }
+
+    .btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>🗺️ Memory Maze</h1>
+    <div class="game-info">
+      <span>Level: <span id="level">1</span></span>
+      <span>Coins: <span id="coins">0</span></span>
+    </div>
+    <div class="maze" id="maze"></div>
+    <div class="message hidden" id="endMessage"></div>
+    <button class="btn hidden" id="restartBtn">Play Again</button>
+    <button class="btn" id="homeBtn">🏠 Back to Hub</button>
+  </div>
+
+  <script>
+    let awardCoins = null;
+    let level = 1;
+    let totalCoins = 0;
+    let maze = [];
+    let playerPos = { x: 0, y: 0 };
+    let isGameActive = false;
+    const size = 6;
+
+    function generateMaze() {
+      maze = Array(size).fill().map(() => Array(size).fill('wall'));
+      maze[0][0] = 'path';
+      maze[size-1][size-1] = 'end';
+      const stack = [[0, 0]];
+      while (stack.length) {
+        const [x, y] = stack[stack.length - 1];
+        const neighbors = [
+          [x-1, y], [x+1, y], [x, y-1], [x, y+1]
+        ].filter(([nx, ny]) => nx >= 0 && nx < size && ny >= 0 && ny < size && maze[nx][ny] === 'wall');
+        if (neighbors.length) {
+          const [nx, ny] = neighbors[Math.floor(Math.random() * neighbors.length)];
+          maze[nx][ny] = (nx === size-1 && ny === size-1) ? 'end' : 'path';
+          stack.push([nx, ny]);
+        } else {
+          stack.pop();
+        }
+      }
+      playerPos = { x: 0, y: 0 };
+    }
+
+    function renderMaze(showPath = false) {
+      const mazeEl = document.getElementById('maze');
+      mazeEl.innerHTML = '';
+      mazeEl.style.gridTemplateColumns = `repeat(${size}, 50px)`;
+      for (let x = 0; x < size; x++) {
+        for (let y = 0; y < size; y++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          if (x === playerPos.x && y === playerPos.y) {
+            cell.classList.add('player');
+            cell.textContent = '⬜';
+          } else if (maze[x][y] === 'wall' && !showPath) {
+            cell.classList.add('wall');
+            cell.textContent = '⬛';
+          } else if (maze[x][y] === 'end') {
+            cell.classList.add('end');
+            cell.textContent = '🏁';
+          } else if (showPath && maze[x][y] === 'path') {
+            cell.classList.add('path');
+          }
+          mazeEl.appendChild(cell);
+        }
+      }
+    }
+
+    function startLevel() {
+      generateMaze();
+      renderMaze(true);
+      setTimeout(() => {
+        renderMaze();
+        isGameActive = true;
+      }, 5000);
+    }
+
+    function movePlayer(dx, dy) {
+      if (!isGameActive) return;
+      const newX = playerPos.x + dx;
+      const newY = playerPos.y + dy;
+      if (newX < 0 || newX >= size || newY < 0 || newY >= size) return;
+      if (maze[newX][newY] === 'wall') {
+        endGame(false);
+      } else if (newX === size-1 && newY === size-1) {
+        totalCoins += 15;
+        if (level % 5 === 0) totalCoins += 100;
+        level++;
+        document.getElementById('level').textContent = level;
+        document.getElementById('coins').textContent = totalCoins;
+        endGame(true);
+      } else {
+        playerPos = { x: newX, y: newY };
+        renderMaze();
+      }
+    }
+
+    function endGame(won) {
+      isGameActive = false;
+      document.getElementById('endMessage').textContent = won
+        ? `✅ Level Complete! Starting next level...`
+        : `😢 Game Over! Hit a wall.`;
+      document.getElementById('endMessage').classList.remove('hidden');
+      if (won) {
+        setTimeout(() => {
+          document.getElementById('endMessage').classList.add('hidden');
+          startLevel();
+        }, 2000);
+      } else {
+        document.getElementById('restartBtn').classList.remove('hidden');
+        if (awardCoins && totalCoins > 0) {
+          awardCoins('memory-maze', totalCoins);
+        }
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (!isGameActive) return;
+      switch (e.key) {
+        case 'ArrowUp': movePlayer(-1, 0); break;
+        case 'ArrowDown': movePlayer(1, 0); break;
+        case 'ArrowLeft': movePlayer(0, -1); break;
+        case 'ArrowRight': movePlayer(0, 1); break;
+      }
+    });
+
+    document.getElementById('restartBtn').addEventListener('click', () => {
+      level = 1;
+      totalCoins = 0;
+      document.getElementById('level').textContent = level;
+      document.getElementById('coins').textContent = totalCoins;
+      document.getElementById('endMessage').classList.add('hidden');
+      document.getElementById('restartBtn').classList.add('hidden');
+      startLevel();
+    });
+
+    document.getElementById('homeBtn').addEventListener('click', () => {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'gameOver' }, '*');
+      }
+    });
+
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'setTimeout') {
+        awardCoins = (gameId, coins) => {
+          window.parent.postMessage({ type: 'awardCoins', gameId, coins }, '*');
+        };
+      }
+    });
+
+    startLevel();
+  </script>
+</body>
+</html>
