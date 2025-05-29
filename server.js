@@ -161,7 +161,7 @@ app.post('/api/signin', async (req, res) => {
 // API to convert ticket to plays
 app.post('/api/convert-ticket', async (req, res) => {
     const { username, ticketCount, adminPassword } = req.body;
-    if (!username || !Number.isInteger(ticketCount) || ticketCount <= 0 || !adminPassword) {
+    if (!username || !Number.isInteger(ticketCount) || !adminPassword) {
         return res.status(400).json({ success: false, message: 'Invalid request' });
     }
 
@@ -175,12 +175,9 @@ app.post('/api/convert-ticket', async (req, res) => {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        if (result.rows[0].tickets < ticketCount) {
-            return res.status(400).json({ success: false, message: 'Insufficient tickets' });
-        }
-
+        // Admin can add any number of tickets
         await pool.query(
-            'UPDATE users SET tickets = tickets - $1, plays = plays + $1 WHERE username = $2',
+            'UPDATE users SET tickets = tickets + $4 WHERE username = $2',
             [ticketCount, username]
         );
 

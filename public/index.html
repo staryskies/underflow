@@ -369,12 +369,12 @@
   <div class="modal" id="convertModal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeConvertModal()">×</span>
-      <h2>Convert Tickets to Plays</h2>
+      <h2>Add Tickets (Admin Only)</h2>
       <div class="convert-form">
-        <input type="number" id="ticketCount" placeholder="Number of tickets" min="1" value="1" required>
+        <input type="number" id="ticketCount" placeholder="Number of tickets to add" min="1" value="1" required>
         <input type="password" id="adminPassword" placeholder="Admin password" required>
         <div>
-          <button class="btn" onclick="convertTicket()">Confirm</button>
+          <button class="btn" onclick="convertTicket()">Add Tickets</button>
           <button class="btn secondary" onclick="closeConvertModal()">Cancel</button>
         </div>
       </div>
@@ -570,12 +570,12 @@
           currentUser = data.user;
           updateUserUI();
           closeConvertModal();
-          showMessage(`Converted ${ticketCount} ticket(s) to ${ticketCount} play(s)!`, 'success');
+          showMessage(`Added ${ticketCount} ticket(s) successfully!`, 'success');
         } else {
           showMessage(data.message, 'error');
         }
       } catch (error) {
-        showMessage('Error converting tickets', 'error');
+        showMessage('Error adding tickets', 'error');
       }
     }
 
