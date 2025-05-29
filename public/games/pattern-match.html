@@ -113,6 +113,12 @@
       transform: translateY(-2px);
     }
 
+    .btn:disabled {
+      background: var(--neutral);
+      cursor: not-allowed;
+      transform: none;
+    }
+
     .hidden {
       display: none;
     }
@@ -123,6 +129,13 @@
       min-height: 1.5rem;
       color: var(--neutral);
       font-weight: 500;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin: 1rem 0;
     }
 
     @media (max-width: 400px) {
@@ -146,9 +159,12 @@
     </div>
     <div class="message" id="message"></div>
     <div class="grid" id="grid"></div>
+    <div class="controls">
+      <button class="btn" id="checkBtn" disabled>Check Pattern</button>
+      <button class="btn" id="restartBtn">Restart</button>
+      <button class="btn" id="homeBtn">🏠 Back to Hub</button>
+    </div>
     <div class="message hidden" id="endMessage"></div>
-    <button class="btn hidden" id="restartBtn">Play Again</button>
-    <button class="btn" id="homeBtn">🏠 Back to Hub</button>
   </div>
 
   <script>
@@ -164,175 +180,116 @@
     const colors = ['red', 'blue', 'green', 'purple'];
 
     function initGrid() {
-      console.log(`Initializing grid for level ${level}`);
-      try {
-        const grid = document.getElementById('grid');
-        grid.innerHTML = '';
-        pattern = [];
-        userPattern = Array(16).fill(null);
-        perfectLevel = true;
-        mistakes = 0;
-        document.getElementById('mistakes').textContent = mistakes;
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+      pattern = [];
+      userPattern = Array(16).fill(null);
+      perfectLevel = true;
+      mistakes = 0;
+      document.getElementById('mistakes').textContent = mistakes;
+      document.getElementById('checkBtn').disabled = true;
 
-        for (let i = 0; i < 16; i++) {
-          const color = colors[Math.floor(Math.random() * colors.length)];
-          pattern.push(color);
-          const tile = document.createElement('div');
-          tile.className = 'tile disabled';
-          tile.dataset.index = i;
-          tile.addEventListener('click', handleTileClick);
-          grid.appendChild(tile);
-        }
-        console.log('Pattern generated:', pattern);
-        showPattern();
-      } catch (error) {
-        console.error('Grid initialization failed:', error);
-        document.getElementById('message').textContent = 'Failed to initialize game.';
+      for (let i = 0; i < 16; i++) {
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        pattern.push(color);
+        const tile = document.createElement('div');
+        tile.className = 'tile disabled';
+        tile.dataset.index = i;
+        tile.addEventListener('click', handleTileClick);
+        grid.appendChild(tile);
       }
+      showPattern();
     }
 
     function showPattern() {
-      console.log('Showing pattern');
-      try {
-        isShowingPattern = true;
-        const tiles = document.querySelectorAll('.tile');
-        tiles.forEach((tile, idx) => {
-          tile.classList.add(pattern[idx]);
+      isShowingPattern = true;
+      const tiles = document.querySelectorAll('.tile');
+      tiles.forEach((tile, idx) => {
+        tile.classList.add(pattern[idx]);
+      });
+      document.getElementById('message').textContent = 'Memorize the pattern!';
+      setTimeout(() => {
+        tiles.forEach(tile => {
+          tile.className = 'tile';
         });
-        document.getElementById('message').textContent = 'Memorize the pattern!';
-        setTimeout(() => {
-          tiles.forEach(tile => {
-            tile.className = 'tile';
-          });
-          document.getElementById('message').textContent = '';
-          isShowingPattern = false;
-          isGameActive = true;
-          console.log('Pattern hidden, game active');
-        }, 3000);
-      } catch (error) {
-        console.error('Show pattern failed:', error);
-        document.getElementById('message').textContent = 'Failed to show pattern.';
-      }
+        document.getElementById('message').textContent = 'Recreate the pattern!';
+        isShowingPattern = false;
+        isGameActive = true;
+        document.getElementById('checkBtn').disabled = false;
+      }, 3000);
     }
 
     function handleTileClick(event) {
-      if (!isGameActive || isShowingPattern) {
-        console.log('Click ignored: game not active or showing pattern');
-        return;
-      }
-      try {
-        const tile = event.target;
-        const index = parseInt(tile.dataset.index);
-        const currentColor = userPattern[index];
-        const nextColorIdx = currentColor ? (colors.indexOf(currentColor) + 1) % colors.length : 0;
-        const nextColor = colors[nextColorIdx];
+      if (!isGameActive || isShowingPattern) return;
+      const tile = event.target;
+      const index = parseInt(tile.dataset.index);
+      const currentColor = userPattern[index];
+      const nextColorIdx = currentColor ? (colors.indexOf(currentColor) + 1) % colors.length : 0;
+      const nextColor = colors[nextColorIdx];
 
-        console.log(`Tile clicked: index=${index}, nextColor=${nextColor}`);
-        tile.classList.remove(...colors);
-        tile.classList.add(nextColor);
-        userPattern[index] = nextColor;
-
-        if (nextColor !== pattern[index]) {
-          mistakes++;
-          perfectLevel = false;
-          document.getElementById('mistakes').textContent = mistakes;
-          document.getElementById('message').textContent = 'Mistake! Try again.';
-          setTimeout(() => {
-            document.getElementById('message').textContent = '';
-          }, 1000);
-          console.log('Mistake made, total mistakes:', mistakes);
-          endGame();
-        } else if (userPattern.every(color => color !== null)) {
-          checkPattern();
-        }
-      } catch (error) {
-        console.error('Tile click failed:', error);
-        document.getElementById('message').textContent = 'Error processing click.';
-      }
+      tile.classList.remove(...colors);
+      tile.classList.add(nextColor);
+      userPattern[index] = nextColor;
     }
 
     function checkPattern() {
-      console.log('Checking pattern');
-      try {
-        isGameActive = false;
-        const isCorrect = pattern.every((color, idx) => color === userPattern[idx]);
-        if (isCorrect) {
-          totalCoins += 12;
-          if (perfectLevel) totalCoins += 50;
-          level++;
-          document.getElementById('coins').textContent = totalCoins;
-          document.getElementById('level').textContent = level;
-          document.getElementById('endMessage').textContent = '✅ Level Complete! Starting next level...';
-          document.getElementById('endMessage').classList.remove('hidden');
-          console.log(`Level complete, coins: ${totalCoins}, next level: ${level}`);
-          setTimeout(() => {
-            document.getElementById('endMessage').classList.add('hidden');
-            initGrid();
-          }, 2000);
-        } else {
-          endGame();
-        }
-      } catch (error) {
-        console.error('Pattern check failed:', error);
-        document.getElementById('message').textContent = 'Error checking pattern.';
+      if (!isGameActive || isShowingPattern) return;
+      isGameActive = false;
+      document.getElementById('checkBtn').disabled = true;
+
+      const isCorrect = pattern.every((color, idx) => color === userPattern[idx]);
+      if (isCorrect) {
+        totalCoins += 12;
+        if (perfectLevel) totalCoins += 50;
+        level++;
+        document.getElementById('coins').textContent = totalCoins;
+        document.getElementById('level').textContent = level;
+        document.getElementById('endMessage').textContent = '✅ Level Complete! Starting next level...';
+        document.getElementById('endMessage').classList.remove('hidden');
+        setTimeout(() => {
+          document.getElementById('endMessage').classList.add('hidden');
+          initGrid();
+        }, 2000);
+      } else {
+        mistakes++;
+        perfectLevel = false;
+        document.getElementById('mistakes').textContent = mistakes;
+        document.getElementById('message').textContent = 'Try again!';
+        setTimeout(() => {
+          document.getElementById('message').textContent = '';
+          isGameActive = true;
+          document.getElementById('checkBtn').disabled = false;
+        }, 1000);
       }
     }
 
-    function endGame() {
-      isGameActive = false;
-      console.log(`Game over: level=${level}, coins=${totalCoins}`);
-      document.getElementById('endMessage').textContent = `😢 Game Over! Reached Level ${level}, Coins: ${totalCoins}`;
-      document.getElementById('endMessage').classList.remove('hidden');
-      document.getElementById('restartBtn').classList.remove('hidden');
-      if (awardCoins && totalCoins > 0) {
-        console.log(`Awarding ${totalCoins} coins for pattern-match`);
-        try {
-          awardCoins('pattern-match', totalCoins);
-        } catch (error) {
-          console.error('Failed to award coins:', error);
-        }
-      }
-    }
+    document.getElementById('checkBtn').addEventListener('click', checkPattern);
 
     document.getElementById('restartBtn').addEventListener('click', () => {
-      console.log('Restarting game');
-      try {
-        level = 1;
-        totalCoins = 0;
-        mistakes = 0;
-        document.getElementById('level').textContent = level;
-        document.getElementById('coins').textContent = totalCoins;
-        document.getElementById('mistakes').textContent = mistakes;
-        document.getElementById('endMessage').classList.add('hidden');
-        document.getElementById('restartBtn').classList.add('hidden');
-        initGrid();
-      } catch (error) {
-        console.error('Restart failed:', error);
-        document.getElementById('message').textContent = 'Failed to restart game.';
-      }
+      level = 1;
+      totalCoins = 0;
+      mistakes = 0;
+      document.getElementById('level').textContent = level;
+      document.getElementById('coins').textContent = totalCoins;
+      document.getElementById('mistakes').textContent = mistakes;
+      document.getElementById('endMessage').classList.add('hidden');
+      initGrid();
     });
 
     document.getElementById('homeBtn').addEventListener('click', () => {
-      console.log('Returning to hub');
-      try {
-        if (window.parent !== window) {
-          window.parent.postMessage({ type: 'gameOver' }, '*');
-        }
-      } catch (error) {
-        console.error('Failed to send gameOver message:', error);
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'gameOver' }, '*');
       }
     });
 
     window.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'setTimeout') {
-        console.log('Received setTimeout message');
         awardCoins = (gameId, coins) => {
           window.parent.postMessage({ type: 'awardCoins', gameId, coins }, '*');
         };
       }
     });
 
-    console.log('Initializing Pattern Match');
     initGrid();
   </script>
 </body>

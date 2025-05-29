@@ -32,11 +32,13 @@
       text-align: center;
       max-width: 600px;
       width: 100%;
+      margin: 0 auto;
     }
 
     h1 {
       color: #1F2937;
       margin-bottom: 20px;
+      text-align: center;
     }
 
     .game-info {
@@ -46,23 +48,38 @@
       font-size: 18px;
       font-weight: bold;
       color: #1F2937;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .game-info span {
+      flex: 1;
+      min-width: 120px;
+      text-align: center;
     }
 
     .game-phase {
       background: #e3f2fd;
       padding: 15px;
       border-radius: 10px;
-      margin: 10px 0;
+      margin: 10px auto;
       font-size: 20px;
       font-weight: bold;
       color: #1976d2;
+      max-width: 400px;
     }
 
     .sequence-display {
       background: #f0f0f0;
       border-radius: 10px;
       padding: 15px;
-      margin: 10px 0;
+      margin: 10px auto;
+      max-width: 400px;
+    }
+
+    .sequence-info {
+      margin-bottom: 10px;
+      font-weight: 500;
     }
 
     .sequence-bar {
@@ -91,6 +108,7 @@
       background: #8B4513;
       border-radius: 10px;
       border: 5px solid #654321;
+      width: fit-content;
     }
 
     .hole {
@@ -155,20 +173,30 @@
       75% { transform: translateX(5px); }
     }
 
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
     .btn {
       background: var(--primary);
       color: white;
-      padding: 10px 20px;
+      padding: 12px 24px;
       border-radius: 8px;
       border: none;
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
-      margin: 10px;
+      min-width: 150px;
+      transition: all 0.3s ease;
     }
 
     .btn:hover {
       background: var(--primary-dark);
+      transform: translateY(-2px);
     }
 
     .hidden {
@@ -189,6 +217,11 @@
     }
 
     @media (max-width: 768px) {
+      .game-container {
+        padding: 15px;
+        margin: 10px;
+      }
+
       .grid {
         grid-template-columns: repeat(3, 80px);
         grid-template-rows: repeat(4, 80px);
@@ -203,8 +236,26 @@
 
       .game-info {
         flex-direction: column;
-        gap: 10px;
-        text-align: center;
+        align-items: center;
+      }
+
+      .game-info span {
+        width: 100%;
+      }
+
+      .game-phase {
+        font-size: 18px;
+        padding: 12px;
+      }
+
+      .sequence-display {
+        padding: 12px;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        font-size: 14px;
+        min-width: 120px;
       }
     }
   </style>

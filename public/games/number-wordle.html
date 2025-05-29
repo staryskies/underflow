@@ -36,18 +36,21 @@
       text-align: center;
       max-width: 500px;
       width: 100%;
+      margin: 0 auto;
     }
 
     h1 {
       color: var(--dark);
       margin-bottom: 10px;
       font-size: 2.5rem;
+      text-align: center;
     }
 
     .subtitle {
       color: var(--neutral);
       margin-bottom: 30px;
       font-size: 1.1rem;
+      text-align: center;
     }
 
     .game-info {
@@ -57,14 +60,23 @@
       font-size: 18px;
       font-weight: bold;
       color: var(--dark);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .game-info span {
+      flex: 1;
+      min-width: 120px;
+      text-align: center;
     }
 
     .guess-grid {
       display: grid;
       gap: 10px;
-      margin: 20px 0;
+      margin: 20px auto;
       max-height: 400px;
       overflow-y: auto;
+      width: fit-content;
     }
 
     .guess-row {
@@ -115,11 +127,14 @@
     }
 
     .input-section {
-      margin: 30px 0;
+      margin: 30px auto;
+      max-width: 400px;
+      width: 100%;
     }
 
     .number-input {
-      width: 200px;
+      width: 100%;
+      max-width: 200px;
       height: 60px;
       border: 2px solid #e1e5e9;
       border-radius: 8px;
@@ -138,6 +153,13 @@
       box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
     }
 
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     .btn {
       background: var(--primary);
       color: white;
@@ -148,7 +170,7 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
-      margin: 0 10px;
+      min-width: 150px;
     }
 
     .btn:hover {
@@ -283,14 +305,19 @@
         font-size: 1.3rem;
       }
 
-      .legend {
-        gap: 15px;
+      .btn {
+        padding: 12px 24px;
+        font-size: 14px;
+        min-width: 120px;
       }
 
       .game-info {
         flex-direction: column;
-        gap: 10px;
-        text-align: center;
+        align-items: center;
+      }
+
+      .game-info span {
+        width: 100%;
       }
     }
   </style>
@@ -325,8 +352,10 @@
     <div class="input-section" id="inputSection">
       <input type="text" class="number-input" id="numberInput" maxlength="4" placeholder="0000">
       <br>
-      <button class="btn" id="guessBtn">Make Guess</button>
-      <button class="btn" id="hintBtn">💡 Get Hint (50 coins)</button>
+      <div class="controls">
+        <button class="btn" id="guessBtn">Make Guess</button>
+        <button class="btn" id="hintBtn">💡 Get Hint (50 coins)</button>
+      </div>
     </div>
 
     <div class="message hidden" id="gameMessage"></div>
