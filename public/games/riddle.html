@@ -97,6 +97,8 @@
         <li id="clue6"></li>
     </ul>
 
+    <button class="btn" id="homeBtn">🏠 Back to Hub</button>
+
     <script>
         // Options for dropdowns
         const options = {
@@ -316,8 +318,16 @@
             }
         }
 
+        homeBtn.addEventListener('click', () => {
+          if (window.parent !== window) {
+            window.parent.postMessage({ type: 'gameOver' }, '*');
+          }
+        });
+
         // Populate dropdowns on page load
         window.onload = populateDropdowns;
+
+        
     </script>
 </body>
 </html>
