@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Einstein's Riddle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        table {
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #fff;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f0f0f0;
+        }
+        select {
+            padding: 5px;
+            width: 120px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        ul {
+            list-style-type: disc;
+            margin-left: 20px;
+        }
+        li.incorrect {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Einstein's Riddle</h1>
+    <h2>House Attributes</h2>
+    <table id="riddleTable">
+        <tr>
+            <th>Attribute</th>
+            <th>House #1</th>
+            <th>House #2</th>
+            <th>House #3</th>
+        </tr>
+        <tr>
+            <td>Color</td>
+            <td><select id="color1" onchange="updateDropdowns('color')"><option value="">Select</option></select></td>
+            <td><select id="color2" onchange="updateDropdowns('color')"><option value="">Select</option></select></td>
+            <td><select id="color3" onchange="updateDropdowns('color')"><option value="">Select</option></select></td>
+        </tr>
+        <tr>
+            <td>Nationality</td>
+            <td><select id="nationality1" onchange="updateDropdowns('nationality')"><option value="">Select</option></select></td>
+            <td><select id="nationality2" onchange="updateDropdowns('nationality')"><option value="">Select</option></select></td>
+            <td><select id="nationality3" onchange="updateDropdowns('nationality')"><option value="">Select</option></select></td>
+        </tr>
+        <tr>
+            <td>Animal</td>
+            <td><select id="animal1" onchange="updateDropdowns('animal')"><option value="">Select</option></select></td>
+            <td><select id="animal2" onchange="updateDropdowns('animal')"><option value="">Select</option></select></td>
+            <td><select id="animal3" onchange="updateDropdowns('animal')"><option value="">Select</option></select></td>
+        </tr>
+        <tr>
+            <td>Sport</td>
+            <td><select id="sport1" onchange="updateDropdowns('sport')"><option value="">Select</option></select></td>
+            <td><select id="sport2" onchange="updateDropdowns('sport')"><option value="">Select</option></select></td>
+            <td><select id="sport3" onchange="updateDropdowns('sport')"><option value="">Select</option></select></td>
+        </tr>
+    </table>
+    <button onclick="checkSolution()">Check Solution</button>
+
+    <h2>Clues</h2>
+    <ul>
+        <li id="clue1"></li>
+        <li id="clue2"></li>
+        <li id="clue3"></li>
+        <li id="clue4"></li>
+        <li id="clue5"></li>
+        <li id="clue6"></li>
+    </ul>
+
+    <script>
+        // Options for dropdowns
+        const options = {
+            color: ["Red", "Green", "Blue"],
+            nationality: ["Brazilian", "German", "Norwegian"],
+            animal: ["Dogs", "Fishes", "Cats", "Birds"],
+            sport: ["Basketball", "Football", "Tennis"]
+        };
+
+        // Shuffled options and selected values for clues
+        let shuffledOptions = {};
+        let clueValues = {};
+
+        // Function to shuffle array
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Function to populate dropdowns with shuffled options
+        function populateDropdowns() {
+            // Shuffle options for each category
+            for (let category in options) {
+                shuffledOptions[category] = shuffle([...options[category]]).slice(0, 3);
+                for (let i = 1; i <= 3; i++) {
+                    const select = document.getElementById(`${category}${i}`);
+                    select.innerHTML = '<option value="">Select</option>';
+                    shuffledOptions[category].forEach(option => {
+                        const opt = document.createElement("option");
+                        opt.value = option;
+                        opt.text = option;
+                        select.appendChild(opt);
+                    });
+                }
+            }
+
+            // Generate a valid solution and clues
+            generateSolutionAndClues();
+        }
+
+        // Function to generate a solution and corresponding clues
+        function generateSolutionAndClues() {
+            // Randomly assign values to each house ensuring uniqueness
+            const solution = {
+                color: shuffle([...shuffledOptions.color]),
+                nationality: shuffle([...shuffledOptions.nationality]),
+                animal: shuffle([...shuffledOptions.animal]),
+                sport: shuffle([...shuffledOptions.sport])
+            };
+
+            // Select values for clues
+            clueValues = {
+                // Clue 1: A nationality not in house 2
+                nationalityNotInHouse2: solution.nationality[0], // Use the nationality from house 1
+                // Clue 2: An animal-sport pair
+                animalSportPair: { animal: solution.animal[1], sport: solution.sport[1] }, // Use house 2's animal and sport
+                // Clue 3: Sport and color with one house between them
+                sportForClue3: solution.sport[0], // House 1's sport
+                colorForClue3: solution.color[2], // House 3's color (to satisfy "one house between")
+                // Clue 4: Two animals where one is directly to the left of the other
+                animalLeft: solution.animal[0], // House 1
+                animalRight: solution.animal[1], // House 2
+                // Clue 5: An animal directly to the right of a color
+                animalForClue5: solution.animal[1], // House 2
+                colorForClue5: solution.color[0], // House 1
+                // Clue 6: A nationality in house 3
+                nationalityInHouse3: solution.nationality[2] // House 3
+            };
+
+            // Update clue text
+            document.getElementById("clue1").textContent = `The ${clueValues.nationalityNotInHouse2} does not live in house two.`;
+            document.getElementById("clue2").textContent = `The person with the ${clueValues.animalSportPair.animal} plays ${clueValues.animalSportPair.sport}.`;
+            document.getElementById("clue3").textContent = `There is one house between the house of the person who plays ${clueValues.sportForClue3} and the ${clueValues.colorForClue3} house on the right.`;
+            document.getElementById("clue4").textContent = `The person with the ${clueValues.animalLeft} lives directly to the left of the person with the ${clueValues.animalRight}.`;
+            document.getElementById("clue5").textContent = `The person with the ${clueValues.animalForClue5} lives directly to the right of the ${clueValues.colorForClue5} house.`;
+            document.getElementById("clue6").textContent = `The ${clueValues.nationalityInHouse3} lives in house three.`;
+        }
+
+        // Function to update dropdowns to prevent duplicates
+        function updateDropdowns(category) {
+            const selectedValues = [];
+            for (let i = 1; i <= 3; i++) {
+                const select = document.getElementById(`${category}${i}`);
+                if (select.value !== "") {
+                    selectedValues.push(select.value);
+                }
+            }
+
+            for (let i = 1; i <= 3; i++) {
+                const select = document.getElementById(`${category}${i}`);
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Select</option>';
+                shuffledOptions[category].forEach(option => {
+                    if (!selectedValues.includes(option) || option === currentValue) {
+                        const opt = document.createElement("option");
+                        opt.value = option;
+                        opt.text = option;
+                        if (option === currentValue) {
+                            opt.selected = true;
+                        }
+                        select.appendChild(opt);
+                    }
+                });
+            }
+        }
+
+        // Function to check the solution and highlight incorrect clues
+        function checkSolution() {
+            // Reset clue styles
+            for (let i = 1; i <= 6; i++) {
+                document.getElementById(`clue${i}`).classList.remove("incorrect");
+            }
+
+            // Get values from dropdowns
+            const color1 = document.getElementById("color1").value;
+            const color2 = document.getElementById("color2").value;
+            const color3 = document.getElementById("color3").value;
+            const nationality1 = document.getElementById("nationality1").value;
+            const nationality2 = document.getElementById("nationality2").value;
+            const nationality3 = document.getElementById("nationality3").value;
+            const animal1 = document.getElementById("animal1").value;
+            const animal2 = document.getElementById("animal2").value;
+            const animal3 = document.getElementById("animal3").value;
+            const sport1 = document.getElementById("sport1").value;
+            const sport2 = document.getElementById("sport2").value;
+            const sport3 = document.getElementById("sport3").value;
+
+            let allCorrect = true;
+
+            // Clue 1: The selected nationality does not live in house two
+            if (nationality2 === clueValues.nationalityNotInHouse2) {
+                document.getElementById("clue1").classList.add("incorrect");
+                allCorrect = false;
+            }
+
+            // Clue 2: The person with the selected animal plays the selected sport
+            let selectedAnimalHouse = 0;
+            if (animal1 === clueValues.animalSportPair.animal) selectedAnimalHouse = 1;
+            else if (animal2 === clueValues.animalSportPair.animal) selectedAnimalHouse = 2;
+            else if (animal3 === clueValues.animalSportPair.animal) selectedAnimalHouse = 3;
+            if (selectedAnimalHouse !== 0) {
+                if (selectedAnimalHouse === 1 && sport1 !== clueValues.animalSportPair.sport) {
+                    document.getElementById("clue2").classList.add("incorrect");
+                    allCorrect = false;
+                }
+                if (selectedAnimalHouse === 2 && sport2 !== clueValues.animalSportPair.sport) {
+                    document.getElementById("clue2").classList.add("incorrect");
+                    allCorrect = false;
+                }
+                if (selectedAnimalHouse === 3 && sport3 !== clueValues.animalSportPair.sport) {
+                    document.getElementById("clue2").classList.add("incorrect");
+                    allCorrect = false;
+                }
+            }
+
+            // Clue 3: There is one house between the house of the person who plays the selected sport and the selected color house on the right
+            let selectedSportHouse = 0;
+            let selectedColorHouse = 0;
+            if (sport1 === clueValues.sportForClue3) selectedSportHouse = 1;
+            else if (sport2 === clueValues.sportForClue3) selectedSportHouse = 2;
+            else if (sport3 === clueValues.sportForClue3) selectedSportHouse = 3;
+            if (color1 === clueValues.colorForClue3) selectedColorHouse = 1;
+            else if (color2 === clueValues.colorForClue3) selectedColorHouse = 2;
+            else if (color3 === clueValues.colorForClue3) selectedColorHouse = 3;
+            if (selectedSportHouse !== 0 && selectedColorHouse !== 0) {
+                if (selectedSportHouse === 1 && selectedColorHouse !== 3) {
+                    document.getElementById("clue3").classList.add("incorrect");
+                    allCorrect = false;
+                } else if (selectedSportHouse === 2 && (selectedColorHouse !== 1 && selectedColorHouse !== 3)) {
+                    document.getElementById("clue3").classList.add("incorrect");
+                    allCorrect = false;
+                } else if (selectedSportHouse === 3 && selectedColorHouse !== 2) {
+                    document.getElementById("clue3").classList.add("incorrect");
+                    allCorrect = false;
+                }
+            }
+
+            // Clue 4: The person with the first selected animal lives directly to the left of the person with the second selected animal
+            let firstAnimalHouse = 0;
+            let secondAnimalHouse = 0;
+            if (animal1 === clueValues.animalLeft) firstAnimalHouse = 1;
+            else if (animal2 === clueValues.animalLeft) firstAnimalHouse = 2;
+            else if (animal3 === clueValues.animalLeft) firstAnimalHouse = 3;
+            if (animal1 === clueValues.animalRight) secondAnimalHouse = 1;
+            else if (animal2 === clueValues.animalRight) secondAnimalHouse = 2;
+            else if (animal3 === clueValues.animalRight) secondAnimalHouse = 3;
+            if (firstAnimalHouse !== 0 && secondAnimalHouse !== 0 && firstAnimalHouse + 1 !== secondAnimalHouse) {
+                document.getElementById("clue4").classList.add("incorrect");
+                allCorrect = false;
+            }
+
+            // Clue 5: The person with the selected animal lives directly to the right of the selected color house
+            let selectedAnimalHouseClue5 = 0;
+            let selectedColorHouseClue5 = 0;
+            if (animal1 === clueValues.animalForClue5) selectedAnimalHouseClue5 = 1;
+            else if (animal2 === clueValues.animalForClue5) selectedAnimalHouseClue5 = 2;
+            else if (animal3 === clueValues.animalForClue5) selectedAnimalHouseClue5 = 3;
+            if (color1 === clueValues.colorForClue5) selectedColorHouseClue5 = 1;
+            else if (color2 === clueValues.colorForClue5) selectedColorHouseClue5 = 2;
+            else if (color3 === clueValues.colorForClue5) selectedColorHouseClue5 = 3;
+            if (selectedAnimalHouseClue5 !== 0 && selectedColorHouseClue5 !== 0 && selectedAnimalHouseClue5 - 1 !== selectedColorHouseClue5) {
+                document.getElementById("clue5").classList.add("incorrect");
+                allCorrect = false;
+            }
+
+            // Clue 6: The selected nationality lives in house three
+            if (nationality3 !== clueValues.nationalityInHouse3) {
+                document.getElementById("clue6").classList.add("incorrect");
+                allCorrect = false;
+            }
+
+            if (allCorrect) {
+                alert("Solution looks correct based on the clues!");
+            }
+        }
+
+        // Populate dropdowns on page load
+        window.onload = populateDropdowns;
+    </script>
+</body>
+</html>

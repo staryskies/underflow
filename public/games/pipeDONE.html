@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipe Connection Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .instructions {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .status {
+            font-size: 1.2em;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+        }
+
+        .win {
+            background: rgba(76, 175, 80, 0.8);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .game-board {
+            display: grid;
+            gap: 1px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 15px;
+            justify-content: center;
+            max-width: 300px;
+            margin: 0 auto;
+            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .pipe-cell {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(145deg, #f0f0f0, #d0d0d0);
+            border: 2px solid #bbb;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pipe-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border-color: #4CAF50;
+        }
+
+        .pipe-cell.connected {
+            background: linear-gradient(145deg, #81C784, #4CAF50);
+            border-color: #2E7D32;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+        }
+
+        .pipe {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pipe-path {
+            position: absolute;
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .pipe-cell.connected .pipe-path {
+            background: #1565C0;
+            box-shadow: 0 0 8px rgba(21, 101, 192, 0.6);
+        }
+
+        /* Pipe shapes */
+        .straight-h .pipe-path {
+            width: 100%;
+            height: 6px;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+        }
+
+        .straight-v .pipe-path {
+            width: 6px;
+            height: 100%;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+        }
+
+        /* Alternative straight pipe styling using ::after */
+        .straight-h::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 6px;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .straight-v::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 100%;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .pipe-cell.connected .straight-h::after,
+        .pipe-cell.connected .straight-v::after {
+            background: #1565C0;
+            box-shadow: 0 0 8px rgba(21, 101, 192, 0.6);
+        }
+
+        .corner-tl::after, .corner-tr::after, .corner-bl::after, .corner-br::after {
+            content: '';
+            position: absolute;
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .pipe-cell.connected .corner-tl::after,
+        .pipe-cell.connected .corner-tr::after,
+        .pipe-cell.connected .corner-bl::after,
+        .pipe-cell.connected .corner-br::after {
+            background: #1565C0;
+            box-shadow: 0 0 8px rgba(21, 101, 192, 0.6);
+        }
+
+        .corner-tl::after {
+            width: 50%;
+            height: 6px;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .corner-tl::before {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 50%;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .pipe-cell.connected .corner-tl::before {
+            background: #1565C0;
+            box-shadow: 0 0 8px rgba(21, 101, 192, 0.6);
+        }
+
+        .corner-tr::after {
+            width: 50%;
+            height: 6px;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .corner-tr::before {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 50%;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .pipe-cell.connected .corner-tr::before {
+            background: #1565C0;
+            box-shadow: 0 0 8px rgba(21, 101, 192, 0.6);
+        }
+
+        .corner-bl::after {
+            width: 50%;
+            height: 6px;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .corner-bl::before {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 50%;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .pipe-cell.connected .corner-bl::before {
+            background: #1565C0;
+            box-shadow: 0 0 8px rgba(21, 101, 192, 0.6);
+        }
+
+        .corner-br::after {
+            width: 50%;
+            height: 6px;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .corner-br::before {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 50%;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .pipe-cell.connected .corner-br::before {
+            background: #1565C0;
+            box-shadow: 0 0 8px rgba(21, 101, 192, 0.6);
+        }
+
+        /* Cross pipe */
+        .cross::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 6px;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .cross::before {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 100%;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .pipe-cell.connected .cross::after,
+        .pipe-cell.connected .cross::before {
+            background: #1565C0;
+            box-shadow: 0 0 8px rgba(21, 101, 192, 0.6);
+        }
+
+        /* T-junction pipes */
+        .t-top::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 6px;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .t-top::before {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 50%;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .pipe-cell.connected .t-top::after,
+        .pipe-cell.connected .t-top::before {
+            background: #1565C0;
+            box-shadow: 0 0 8px rgba(21, 101, 192, 0.6);
+        }
+
+        .t-bottom::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 6px;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .t-bottom::before {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 50%;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .pipe-cell.connected .t-bottom::after,
+        .pipe-cell.connected .t-bottom::before {
+            background: #1565C0;
+            box-shadow: 0 0 8px rgba(21, 101, 192, 0.6);
+        }
+
+        .t-left::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 100%;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .t-left::before {
+            content: '';
+            position: absolute;
+            width: 50%;
+            height: 6px;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .pipe-cell.connected .t-left::after,
+        .pipe-cell.connected .t-left::before {
+            background: #1565C0;
+            box-shadow: 0 0 8px rgba(21, 101, 192, 0.6);
+        }
+
+        .t-right::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 100%;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .t-right::before {
+            content: '';
+            position: absolute;
+            width: 50%;
+            height: 6px;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .pipe-cell.connected .t-right::after,
+        .pipe-cell.connected .t-right::before {
+            background: #1565C0;
+            box-shadow: 0 0 8px rgba(21, 101, 192, 0.6);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .new-game-btn {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .new-game-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        .difficulty-btn {
+            background: linear-gradient(45deg, #4ECDC4, #44A08D);
+            color: white;
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.4);
+        }
+
+        .difficulty-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(78, 205, 196, 0.6);
+        }
+
+        .difficulty-btn.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.6);
+        }
+
+        @media (max-width: 600px) {
+            .pipe-cell {
+                width: 35px;
+                height: 35px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .game-container {
+                padding: 20px;
+            }
+
+            .game-board {
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🔧 Pipe Connection Game</h1>
+        <div class="instructions">
+            Click on pipes to rotate them and connect all pieces into one network!
+        </div>
+        
+        <div class="game-info">
+            <div class="status" id="gameStatus">Connect all pipes!</div>
+        </div>
+        
+        <div class="game-board" id="gameBoard"></div>
+        
+        <div class="controls">
+            <button class="new-game-btn" onclick="newGame()">New Game</button>
+        </div>
+    </div>
+
+    <script>
+        let boardSize = 5;
+        let board = [];
+        let gameWon = false;
+
+        // Pipe types: 0=empty, 1=straight-h, 2=straight-v, 3=corner-tl, 4=corner-tr, 5=corner-bl, 6=corner-br, 7=cross, 8=t-top, 9=t-bottom, 10=t-left, 11=t-right
+        const pipeTypes = ['', 'straight-h', 'straight-v', 'corner-tl', 'corner-tr', 'corner-bl', 'corner-br', 'cross', 't-top', 't-bottom', 't-left', 't-right'];
+        
+        // Connection maps for each pipe type (which sides connect)
+        const connections = {
+            1: ['left', 'right'], // straight horizontal
+            2: ['top', 'bottom'], // straight vertical
+            3: ['right', 'bottom'], // corner top-left
+            4: ['left', 'bottom'], // corner top-right
+            5: ['right', 'top'], // corner bottom-left
+            6: ['left', 'top'], // corner bottom-right
+            7: ['top', 'right', 'bottom', 'left'], // cross (all directions)
+            8: ['left', 'right', 'top'], // T-junction with top
+            9: ['left', 'right', 'bottom'], // T-junction with bottom
+            10: ['top', 'bottom', 'left'], // T-junction with left
+            11: ['top', 'bottom', 'right'] // T-junction with right
+        };
+
+        function initGame() {
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
+            gameBoard.innerHTML = '';
+            board = [];
+            gameWon = false;
+            
+            updateStatus('Connect all pipes!');
+
+            // Generate a solvable puzzle
+            generateSolvablePuzzle();
+            renderBoard();
+        }
+
+        function generateSolvablePuzzle() {
+            // Initialize empty board
+            for (let i = 0; i < boardSize; i++) {
+                board[i] = [];
+                for (let j = 0; j < boardSize; j++) {
+                    board[i][j] = { type: 0, rotation: 0 };
+                }
+            }
+
+            // Create a spanning tree to ensure all cells are connected
+            let visited = new Set();
+            let edges = [];
+            
+            // Start from random position
+            let startRow = Math.floor(Math.random() * boardSize);
+            let startCol = Math.floor(Math.random() * boardSize);
+            visited.add(`${startRow},${startCol}`);
+            
+            // Add all possible edges from visited cells
+            function addEdges(row, col) {
+                const neighbors = [
+                    [row - 1, col, 'top'],
+                    [row + 1, col, 'bottom'],
+                    [row, col - 1, 'left'],
+                    [row, col + 1, 'right']
+                ];
+                
+                for (let [newRow, newCol, direction] of neighbors) {
+                    if (newRow >= 0 && newRow < boardSize && newCol >= 0 && newCol < boardSize) {
+                        if (!visited.has(`${newRow},${newCol}`)) {
+                            edges.push([row, col, newRow, newCol, direction]);
+                        }
+                    }
+                }
+            }
+            
+            addEdges(startRow, startCol);
+            
+            // Build minimum spanning tree using randomized Prim's algorithm
+            let connections = {};
+            
+            while (edges.length > 0 && visited.size < boardSize * boardSize) {
+                // Pick random edge
+                let edgeIndex = Math.floor(Math.random() * edges.length);
+                let [fromRow, fromCol, toRow, toCol, direction] = edges[edgeIndex];
+                edges.splice(edgeIndex, 1);
+                
+                if (!visited.has(`${toRow},${toCol}`)) {
+                    visited.add(`${toRow},${toCol}`);
+                    
+                    // Record connection
+                    let fromKey = `${fromRow},${fromCol}`;
+                    let toKey = `${toRow},${toCol}`;
+                    
+                    if (!connections[fromKey]) connections[fromKey] = [];
+                    if (!connections[toKey]) connections[toKey] = [];
+                    
+                    connections[fromKey].push(direction);
+                    
+                    // Add reverse direction
+                    let reverseDir = {
+                        'top': 'bottom',
+                        'bottom': 'top',
+                        'left': 'right',
+                        'right': 'left'
+                    }[direction];
+                    connections[toKey].push(reverseDir);
+                    
+                    addEdges(toRow, toCol);
+                }
+            }
+            
+            // Convert connections to pipe types
+            for (let i = 0; i < boardSize; i++) {
+                for (let j = 0; j < boardSize; j++) {
+                    let key = `${i},${j}`;
+                    let cellConnections = connections[key] || [];
+                    
+                    // Determine pipe type based on connections
+                    let pipeType = getPipeTypeFromConnections(cellConnections);
+                    board[i][j] = {
+                        type: pipeType,
+                        rotation: 0 // Start with correct rotation
+                    };
+                }
+            }
+            
+            // Now scramble rotations to create the puzzle
+            for (let i = 0; i < boardSize; i++) {
+                for (let j = 0; j < boardSize; j++) {
+                    if (board[i][j].type !== 0) {
+                        board[i][j].rotation = Math.floor(Math.random() * 4) * 90;
+                    }
+                }
+            }
+        }
+        
+        function getPipeTypeFromConnections(dirs) {
+            if (dirs.length === 0) return 1; // Default to straight pipe
+            
+            dirs.sort(); // Normalize order
+            let dirStr = dirs.join(',');
+            
+            // Map connection patterns to pipe types
+            const patterns = {
+                'left,right': 1, // straight horizontal
+                'bottom,top': 2, // straight vertical
+                'bottom,right': 3, // corner top-left
+                'bottom,left': 4, // corner top-right
+                'right,top': 5, // corner bottom-left
+                'left,top': 6, // corner bottom-right
+                'bottom,left,right,top': 7, // cross
+                'left,right,top': 8, // T-top
+                'bottom,left,right': 9, // T-bottom
+                'bottom,left,top': 10, // T-left
+                'bottom,right,top': 11 // T-right
+            };
+            
+            return patterns[dirStr] || 1; // Default to straight if pattern not found
+        }
+
+        function renderBoard() {
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.innerHTML = '';
+
+            for (let i = 0; i < boardSize; i++) {
+                for (let j = 0; j < boardSize; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'pipe-cell';
+                    cell.onclick = () => rotatePipe(i, j);
+
+                    // Ensure every cell has a pipe (no blank cells)
+                    if (board[i][j].type === 0) {
+                        // If somehow a blank cell exists, replace it with a random pipe
+                        board[i][j].type = Math.floor(Math.random() * 2) + 1; // straight pipe
+                        board[i][j].rotation = Math.floor(Math.random() * 4) * 90;
+                    }
+
+                    const pipe = document.createElement('div');
+                    pipe.className = `pipe ${pipeTypes[board[i][j].type]}`;
+                    pipe.style.transform = `rotate(${board[i][j].rotation}deg)`;
+                    cell.appendChild(pipe);
+
+                    gameBoard.appendChild(cell);
+                }
+            }
+
+            checkConnections();
+        }
+
+        function rotatePipe(row, col) {
+            if (gameWon) return;
+            
+            board[row][col].rotation = (board[row][col].rotation + 90) % 360;
+            renderBoard();
+        }
+
+        function getRotatedConnections(type, rotation) {
+            if (!connections[type]) return [];
+            
+            const sides = ['top', 'right', 'bottom', 'left'];
+            const rotationSteps = rotation / 90;
+            
+            return connections[type].map(side => {
+                const sideIndex = sides.indexOf(side);
+                const newIndex = (sideIndex + rotationSteps) % 4;
+                return sides[newIndex];
+            });
+        }
+
+        function checkConnections() {
+            // Reset all connections
+            const cells = document.querySelectorAll('.pipe-cell');
+            cells.forEach(cell => cell.classList.remove('connected'));
+
+            // Find all pipe positions (now all cells have pipes)
+            let pipePositions = [];
+            for (let i = 0; i < boardSize; i++) {
+                for (let j = 0; j < boardSize; j++) {
+                    pipePositions.push([i, j]);
+                }
+            }
+
+            if (pipePositions.length === 0) return;
+
+            // Start flood fill from first pipe
+            let visited = new Set();
+            let queue = [pipePositions[0]];
+            visited.add(`${pipePositions[0][0]},${pipePositions[0][1]}`);
+
+            while (queue.length > 0) {
+                let [row, col] = queue.shift();
+                let currentConnections = getRotatedConnections(board[row][col].type, board[row][col].rotation);
+
+                // Check all adjacent cells
+                const adjacent = [
+                    [row - 1, col, 'top', 'bottom'],
+                    [row + 1, col, 'bottom', 'top'],
+                    [row, col - 1, 'left', 'right'],
+                    [row, col + 1, 'right', 'left']
+                ];
+
+                for (let [newRow, newCol, currentSide, adjacentSide] of adjacent) {
+                    if (newRow >= 0 && newRow < boardSize && newCol >= 0 && newCol < boardSize) {
+                        if (!visited.has(`${newRow},${newCol}`)) {
+                            let adjacentConnections = getRotatedConnections(board[newRow][newCol].type, board[newRow][newCol].rotation);
+                            
+                            // Check if both pipes connect to each other
+                            if (currentConnections.includes(currentSide) && adjacentConnections.includes(adjacentSide)) {
+                                visited.add(`${newRow},${newCol}`);
+                                queue.push([newRow, newCol]);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Mark connected pipes
+            for (let pos of visited) {
+                let [row, col] = pos.split(',').map(Number);
+                let cellIndex = row * boardSize + col;
+                cells[cellIndex].classList.add('connected');
+            }
+
+            // Check if all pipes are connected
+            if (visited.size === pipePositions.length && pipePositions.length > 0) {
+                gameWon = true;
+                updateStatus('🎉 Congratulations! All pipes connected!', true);
+            } else {
+                updateStatus(`${visited.size}/${pipePositions.length} pipes connected`);
+            }
+        }
+
+        function updateStatus(message, isWin = false) {
+            const status = document.getElementById('gameStatus');
+            status.textContent = message;
+            status.className = isWin ? 'status win' : 'status';
+        }
+
+        function setDifficulty(difficulty) {
+            // Remove active class from all buttons
+            document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to selected button
+            document.getElementById(difficulty + 'Btn').classList.add('active');
+            
+            switch(difficulty) {
+                case 'easy':
+                    boardSize = 5;
+                    break;
+                case 'medium':
+                    boardSize = 6;
+                    break;
+                case 'hard':
+                    boardSize = 8;
+                    break;
+            }
+            
+            initGame();
+        }
+
+        function newGame() {
+            initGame();
+        }
+
+        // Initialize game on load
+        initGame();
+    </script>
+</body>
+</html>
