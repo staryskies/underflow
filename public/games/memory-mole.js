@@ -158,6 +158,7 @@ function loadMemoryMole() {
   let timerInterval;
   let isWatching = true;
   let currentLayer = 1;
+  let isAnimating = false;
 
   function updateUI() {
     document.getElementById('moleLevel').textContent = level;
@@ -181,13 +182,14 @@ function loadMemoryMole() {
     setTimeout(() => {
       hole.classList.remove('active');
       delete hole.dataset.layer;
-    }, 1000);
+    }, Math.max(1000 - (level * 100), 300));
   }
 
   function playSequence() {
     let i = 0;
     isPlaying = false;
     isWatching = true;
+    isAnimating = true;
     updateUI();
     
     const interval = setInterval(() => {
@@ -207,26 +209,29 @@ function loadMemoryMole() {
         setTimeout(() => {
           isWatching = false;
           isPlaying = true;
+          isAnimating = false;
           currentLayer = 1;
           updateUI();
         }, 1000);
       }
-    }, 2000);
+    }, Math.max(2000 - (level * 150), 800));
   }
 
   function startTimer() {
     timeLeft = 30;
     updateUI();
     timerInterval = setInterval(() => {
-      timeLeft--;
-      updateUI();
-      if (timeLeft <= 0) {
-        clearInterval(timerInterval);
-        isPlaying = false;
-        document.getElementById('startMoleBtn').textContent = 'Try Again';
-        document.getElementById('startMoleBtn').disabled = false;
-        awardCoins(score);
-        showMessage('Time\'s up!', 'error');
+      if (!isAnimating) {
+        timeLeft--;
+        updateUI();
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          isPlaying = false;
+          document.getElementById('startMoleBtn').textContent = 'Try Again';
+          document.getElementById('startMoleBtn').disabled = false;
+          awardCoins(score);
+          showMessage('Time\'s up!', 'error');
+        }
       }
     }, 1000);
   }
@@ -248,7 +253,8 @@ function loadMemoryMole() {
     sequence = [];
     
     for (let layer = 1; layer <= numLayers; layer++) {
-      const molesInLayer = Math.min(level, 3); // 1-3 moles per layer
+      // Start with more moles and decrease as level increases
+      const molesInLayer = Math.max(4 - Math.floor(level / 2), 1);
       const layerMoles = [];
       
       for (let i = 0; i < molesInLayer; i++) {
@@ -280,7 +286,7 @@ function loadMemoryMole() {
   }
 
   function handleMoleClick(index) {
-    if (!isPlaying) {
+    if (!isPlaying || isAnimating) {
       showMessage('Wait for the pattern to finish...', 'error');
       return;
     }

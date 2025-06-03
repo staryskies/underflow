@@ -510,6 +510,34 @@
     .tutorial-btn:hover {
       background: rgba(255, 255, 255, 0.15);
     }
+
+    .trade-options {
+      display: flex;
+      gap: 2rem;
+      margin: 1rem 0;
+    }
+
+    .trade-option {
+      flex: 1;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: var(--border-radius);
+      text-align: center;
+    }
+
+    .trade-option h3 {
+      margin-bottom: 0.5rem;
+      color: var(--primary);
+    }
+
+    .trade-option p {
+      margin-bottom: 1rem;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .trade-option .btn {
+      width: 100%;
+    }
   </style>
 </head>
 <body>
@@ -578,12 +606,20 @@
       <h2>Buy More Plays</h2>
       <div class="convert-form">
         <p>Add more plays to your account:</p>
-        <input type="number" id="playCount" placeholder="Number of plays to add" min="1" value="1" required>
-        <input type="password" id="adminPassword" placeholder="Admin password" required>
-        <div>
-          <button class="btn" onclick="addPlays()">Add Plays</button>
-          <button class="btn secondary" onclick="closeBuyPlaysModal()">Cancel</button>
+        <div class="trade-options">
+          <div class="trade-option">
+            <h3>Trade Coins</h3>
+            <p>Trade 75 coins for 1 play</p>
+            <button class="btn" onclick="tradeCoinsForPlay()" id="tradeCoinsBtn">Trade Coins</button>
+          </div>
+          <div class="trade-option">
+            <h3>Admin Add</h3>
+            <input type="number" id="playCount" placeholder="Number of plays to add" min="1" value="1" required>
+            <input type="password" id="adminPassword" placeholder="Admin password" required>
+            <button class="btn" onclick="addPlays()">Add Plays</button>
+          </div>
         </div>
+        <button class="btn secondary" onclick="closeBuyPlaysModal()">Cancel</button>
       </div>
     </div>
   </div>
@@ -627,6 +663,7 @@
     function updateUI() {
       document.getElementById('playsDisplay').textContent = `Plays: ${plays}`;
       document.getElementById('coinsDisplay').textContent = `Coins: ${coins}`;
+      document.getElementById('tradeCoinsBtn').disabled = coins < 75;
     }
 
     function showBuyPlaysModal() {
@@ -785,6 +822,19 @@
         closeTutorial();
       }
     });
+
+    function tradeCoinsForPlay() {
+      if (coins < 75) {
+        showMessage('Not enough coins! You need 75 coins.', 'error');
+        return;
+      }
+      
+      coins -= 75;
+      plays++;
+      updateUI();
+      closeBuyPlaysModal();
+      showMessage('Successfully traded 75 coins for 1 play!', 'success');
+    }
 
     updateUI();
   </script>

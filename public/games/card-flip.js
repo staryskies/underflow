@@ -106,6 +106,7 @@ function loadCardFlip() {
 
     .card-back {
       background: var(--warning);
+      transform: rotateY(0deg);
     }
 
     .card:hover:not(.flipped) .card-inner {
@@ -136,6 +137,7 @@ function loadCardFlip() {
   let isPlaying = false;
   let timeLeft = 60;
   let timerInterval;
+  let isAnimating = false;
 
   function updateUI() {
     document.getElementById('moves').textContent = moves;
@@ -171,15 +173,17 @@ function loadCardFlip() {
     timeLeft = 60;
     updateUI();
     timerInterval = setInterval(() => {
-      timeLeft--;
-      updateUI();
-      if (timeLeft <= 0) {
-        clearInterval(timerInterval);
-        isPlaying = false;
-        document.getElementById('startCardBtn').textContent = 'Try Again';
-        document.getElementById('startCardBtn').disabled = false;
-        awardCoins(pairs * 5);
-        showMessage('Time\'s up!', 'error');
+      if (!isAnimating) {
+        timeLeft--;
+        updateUI();
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          isPlaying = false;
+          document.getElementById('startCardBtn').textContent = 'Try Again';
+          document.getElementById('startCardBtn').disabled = false;
+          awardCoins(pairs * 5);
+          showMessage('Time\'s up!', 'error');
+        }
       }
     }, 1000);
   }
@@ -196,10 +200,13 @@ function loadCardFlip() {
     document.querySelectorAll('.card').forEach(card => {
       card.classList.remove('flipped', 'matched');
     });
+    
+    document.getElementById('startCardBtn').textContent = 'Restart';
   }
 
   function handleCardClick(card) {
-    if (!isPlaying || flippedCards.length >= 2 || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+    if (!isPlaying || flippedCards.length >= 2 || card.classList.contains('flipped') || 
+        card.classList.contains('matched') || isAnimating) return;
 
     card.classList.add('flipped');
     flippedCards.push(card);
@@ -207,6 +214,7 @@ function loadCardFlip() {
     if (flippedCards.length === 2) {
       moves++;
       updateUI();
+      isAnimating = true;
       
       const [card1, card2] = flippedCards;
       if (card1.dataset.card === card2.dataset.card) {
@@ -214,6 +222,7 @@ function loadCardFlip() {
         card1.classList.add('matched');
         card2.classList.add('matched');
         flippedCards = [];
+        isAnimating = false;
         
         if (pairs === 12) {
           clearInterval(timerInterval);
@@ -230,6 +239,7 @@ function loadCardFlip() {
           card1.classList.remove('flipped');
           card2.classList.remove('flipped');
           flippedCards = [];
+          isAnimating = false;
         }, 1000);
       }
     }
