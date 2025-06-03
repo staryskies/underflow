@@ -140,9 +140,13 @@ function loadCardFlip() {
   let isAnimating = false;
 
   function updateUI() {
-    document.getElementById('moves').textContent = moves;
-    document.getElementById('pairs').textContent = pairs;
-    document.getElementById('cardTimer').textContent = timeLeft;
+    const movesEl = document.getElementById('moves');
+    const pairsEl = document.getElementById('pairs');
+    const timerEl = document.getElementById('cardTimer');
+    
+    if (movesEl) movesEl.textContent = moves;
+    if (pairsEl) pairsEl.textContent = pairs;
+    if (timerEl) timerEl.textContent = timeLeft;
   }
 
   function shuffleCards() {
@@ -179,8 +183,11 @@ function loadCardFlip() {
         if (timeLeft <= 0) {
           clearInterval(timerInterval);
           isPlaying = false;
-          document.getElementById('startCardBtn').textContent = 'Try Again';
-          document.getElementById('startCardBtn').disabled = false;
+          const startBtn = document.getElementById('startCardBtn');
+          if (startBtn) {
+            startBtn.textContent = 'Try Again';
+            startBtn.disabled = false;
+          }
           awardCoins(pairs * 5);
           showMessage('Time\'s up!', 'error');
         }
@@ -193,15 +200,19 @@ function loadCardFlip() {
     pairs = 0;
     flippedCards = [];
     isPlaying = true;
-    updateUI();
-    shuffleCards();
-    startTimer();
     
-    document.querySelectorAll('.card').forEach(card => {
-      card.classList.remove('flipped', 'matched');
-    });
-    
-    document.getElementById('startCardBtn').textContent = 'Restart';
+    // Ensure UI is ready before updating
+    setTimeout(() => {
+      updateUI();
+      shuffleCards();
+      startTimer();
+      
+      document.querySelectorAll('.card').forEach(card => {
+        card.classList.remove('flipped', 'matched');
+      });
+      
+      document.getElementById('startCardBtn').textContent = 'Restart';
+    }, 100);
   }
 
   function handleCardClick(card) {
@@ -227,8 +238,11 @@ function loadCardFlip() {
         if (pairs === 12) {
           clearInterval(timerInterval);
           isPlaying = false;
-          document.getElementById('startCardBtn').textContent = 'Play Again';
-          document.getElementById('startCardBtn').disabled = false;
+          const startBtn = document.getElementById('startCardBtn');
+          if (startBtn) {
+            startBtn.textContent = 'Play Again';
+            startBtn.disabled = false;
+          }
           const timeBonus = Math.max(timeLeft, 0);
           const totalCoins = pairs * 5 + timeBonus;
           awardCoins(totalCoins);

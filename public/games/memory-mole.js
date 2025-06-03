@@ -161,13 +161,19 @@ function loadMemoryMole() {
   let isAnimating = false;
 
   function updateUI() {
-    document.getElementById('moleLevel').textContent = level;
-    document.getElementById('moleScore').textContent = score;
-    document.getElementById('moleTimer').textContent = timeLeft;
+    const levelEl = document.getElementById('moleLevel');
+    const scoreEl = document.getElementById('moleScore');
+    const timerEl = document.getElementById('moleTimer');
+    
+    if (levelEl) levelEl.textContent = level;
+    if (scoreEl) scoreEl.textContent = score;
+    if (timerEl) timerEl.textContent = timeLeft;
     
     // Update phase indicators
-    document.querySelector('.phase-indicator.watch').classList.toggle('active', isWatching);
-    document.querySelector('.phase-indicator.repeat').classList.toggle('active', !isWatching);
+    const watchPhase = document.querySelector('.phase-indicator.watch');
+    const repeatPhase = document.querySelector('.phase-indicator.repeat');
+    if (watchPhase) watchPhase.classList.toggle('active', isWatching);
+    if (repeatPhase) repeatPhase.classList.toggle('active', !isWatching);
     
     // Update layer indicators
     document.querySelectorAll('.layer').forEach(layer => {
@@ -177,6 +183,8 @@ function loadMemoryMole() {
 
   function showMole(index, layer) {
     const hole = document.querySelector(`.mole-hole[data-index="${index}"]`);
+    if (!hole) return;
+    
     hole.classList.add('active');
     hole.dataset.layer = layer;
     setTimeout(() => {
@@ -241,10 +249,18 @@ function loadMemoryMole() {
     playerSequence = [];
     level = 1;
     score = 0;
-    updateUI();
-    addToSequence();
-    playSequence();
-    startTimer();
+    isPlaying = true;
+    isWatching = true;
+    isAnimating = true;
+    currentLayer = 1;
+    
+    // Ensure UI is ready before updating
+    setTimeout(() => {
+      updateUI();
+      addToSequence();
+      playSequence();
+      startTimer();
+    }, 100);
   }
 
   function addToSequence() {
