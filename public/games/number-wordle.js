@@ -200,15 +200,15 @@ function loadNumberWordle() {
     const input = document.getElementById('numberInput');
     const guess = input.value;
     
-    if (guess.length !== 4) {
-      showMessage('Please enter a 4-digit number', 'error');
+    if (guess.length !== 4 || !/^\d+$/.test(guess)) {
+      showMessage('Enter 4 digits', 'error');
       return;
     }
 
-    // Check for repeating digits
+    // Check for duplicate digits
     const digits = new Set(guess.split(''));
     if (digits.size !== 4) {
-      showMessage('Each digit must be unique', 'error');
+      showMessage('No duplicates', 'error');
       return;
     }
 
@@ -249,17 +249,18 @@ function loadNumberWordle() {
     input.value = '';
 
     if (correct === 4) {
-      coins = Math.max(100 - (attempts - 1) * 10, 10);
+      const remainingAttempts = 6 - attempts;
+      coins = remainingAttempts * 200;
       awardCoins(coins);
+      showMessage(`${coins} coins`, 'success');
       setTimeout(() => {
-        alert(`Congratulations! You won ${coins} coins!`);
         returnToMenu();
-      }, 500);
+      }, 1500);
     } else if (attempts === 6) {
+      showMessage(`Number: ${secretNumber.join('')}`, 'error');
       setTimeout(() => {
-        alert(`Game Over! The number was ${secretNumber.join('')}`);
         returnToMenu();
-      }, 500);
+      }, 1500);
     } else {
       currentRow++;
     }
@@ -272,4 +273,62 @@ function loadNumberWordle() {
   });
 
   document.getElementById('submitGuess').addEventListener('click', handleSubmit);
-} 
+}
+
+function checkGuess() {
+    if (!isPlaying) return;
+    
+    const guess = document.getElementById('guessInput').value;
+    if (guess.length !== 4 || !/^\d+$/.test(guess)) {
+      showMessage('Enter 4 digits', 'error');
+      return;
+    }
+
+    // Check for duplicate digits
+    const digits = new Set(guess.split(''));
+    if (digits.size !== 4) {
+      showMessage('No duplicates', 'error');
+      return;
+    }
+
+    const feedback = [];
+    let correct = 0;
+    let wrongPosition = 0;
+
+    for (let i = 0; i < 4; i++) {
+      if (guess[i] === target[i]) {
+        feedback.push('🟩');
+        correct++;
+      } else if (target.includes(guess[i])) {
+        feedback.push('🟨');
+        wrongPosition++;
+      } else {
+        feedback.push('⬜');
+      }
+    }
+
+    const guessRow = document.createElement('div');
+    guessRow.className = 'guess-row';
+    guessRow.innerHTML = `
+      <span class="guess-number">${guess}</span>
+      <span class="guess-feedback">${feedback.join('')}</span>
+    `;
+    document.getElementById('guesses').appendChild(guessRow);
+
+    document.getElementById('guessInput').value = '';
+    attempts++;
+
+    if (correct === 4) {
+      isPlaying = false;
+      const coins = Math.max(10 - attempts, 1) * 5;
+      awardCoins(coins);
+      showMessage(`${coins} coins`, 'success');
+      document.getElementById('startWordleBtn').textContent = 'Play Again';
+      document.getElementById('startWordleBtn').disabled = false;
+    } else if (attempts >= 10) {
+      isPlaying = false;
+      showMessage(`Number: ${target}`, 'error');
+      document.getElementById('startWordleBtn').textContent = 'Try Again';
+      document.getElementById('startWordleBtn').disabled = false;
+    }
+  } 

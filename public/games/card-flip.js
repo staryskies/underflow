@@ -79,8 +79,9 @@ function loadCardFlip() {
       position: relative;
       width: 100%;
       height: 100%;
-      transform-style: preserve-3d;
+      text-align: center;
       transition: transform 0.6s;
+      transform-style: preserve-3d;
     }
 
     .card.flipped .card-inner {
@@ -91,6 +92,7 @@ function loadCardFlip() {
       position: absolute;
       width: 100%;
       height: 100%;
+      -webkit-backface-visibility: hidden;
       backface-visibility: hidden;
       display: flex;
       align-items: center;
