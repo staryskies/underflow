@@ -288,6 +288,18 @@
         padding: 1.5rem;
       }
     }
+
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 0.5rem;
+    }
+
+    .button-group .btn {
+      flex: 1;
+      max-width: 200px;
+    }
   </style>
 </head>
 <body>
@@ -334,7 +346,10 @@
       <div class="login-form">
         <input type="text" id="usernameInput" placeholder="Username" required>
         <input type="text" id="passcodeInput" placeholder="4-digit Passcode" maxlength="4" required>
-        <button class="btn" onclick="signIn()">Sign In</button>
+        <div class="button-group">
+          <button class="btn" onclick="signIn()">Sign In</button>
+          <button class="btn secondary" onclick="closeLoginModal()">Cancel</button>
+        </div>
       </div>
     </div>
   </div>
