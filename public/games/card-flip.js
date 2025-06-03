@@ -17,8 +17,8 @@ function loadCardFlip() {
         ${Array(24).fill(0).map((_, i) => `
           <div class="card" data-card="${Math.floor(i/2)}">
             <div class="card-inner">
-              <div class="card-front"></div>
-              <div class="card-back">${['🎮', '🎲', '🎯', '🎨', '🎭', '🎪', '🎡', '🎢', '🎠', '🎨', '🎭', '🎪'][Math.floor(i/2)]}</div>
+              <div class="card-front">${['🎮', '🎲', '🎯', '🎨', '🎭', '🎪', '🎡', '🎢', '🎠', '🎨', '🎭', '🎪'][Math.floor(i/2)]}</div>
+              <div class="card-back">?</div>
             </div>
           </div>
         `).join('')}
@@ -113,7 +113,7 @@ function loadCardFlip() {
       transform: translateY(-5px);
     }
 
-    .card.matched .card-back {
+    .card.matched .card-front {
       background: var(--success);
     }
 
@@ -152,7 +152,7 @@ function loadCardFlip() {
     // Ensure no more than 2 of the same icon
     const iconCounts = {};
     cardArray.forEach(card => {
-      const icon = card.querySelector('.card-back').textContent;
+      const icon = card.querySelector('.card-front').textContent;
       iconCounts[icon] = (iconCounts[icon] || 0) + 1;
     });
 

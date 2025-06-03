@@ -212,7 +212,7 @@ function loadMemoryMole() {
           isAnimating = false;
           currentLayer = 1;
           updateUI();
-        }, 1000);
+        }, 2000);
       }
     }, Math.max(2000 - (level * 150), 800));
   }
@@ -296,14 +296,14 @@ function loadMemoryMole() {
     
     if (playerSequence.length === sequence.length) {
       if (checkSequence()) {
-        score += level * 10;
+        score += level * 20;
         level++;
         updateUI();
         playerSequence = [];
         addToSequence();
         setTimeout(() => {
           playSequence();
-        }, 1000);
+        }, 2000);
       } else {
         clearInterval(timerInterval);
         isPlaying = false;

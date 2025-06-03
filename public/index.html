@@ -609,7 +609,7 @@
         <div class="trade-options">
           <div class="trade-option">
             <h3>Trade Coins</h3>
-            <p>Trade 75 coins for 1 play</p>
+            <p>Trade 350 coins for 1 play</p>
             <button class="btn" onclick="tradeCoinsForPlay()" id="tradeCoinsBtn">Trade Coins</button>
           </div>
           <div class="trade-option">
@@ -663,7 +663,7 @@
     function updateUI() {
       document.getElementById('playsDisplay').textContent = `Plays: ${plays}`;
       document.getElementById('coinsDisplay').textContent = `Coins: ${coins}`;
-      document.getElementById('tradeCoinsBtn').disabled = coins < 75;
+      document.getElementById('tradeCoinsBtn').disabled = coins < 350;
     }
 
     function showBuyPlaysModal() {
@@ -824,16 +824,16 @@
     });
 
     function tradeCoinsForPlay() {
-      if (coins < 75) {
-        showMessage('Not enough coins! You need 75 coins.', 'error');
+      if (coins < 350) {
+        showMessage('Not enough coins! You need 350 coins.', 'error');
         return;
       }
       
-      coins -= 75;
+      coins -= 350;
       plays++;
       updateUI();
       closeBuyPlaysModal();
-      showMessage('Successfully traded 75 coins for 1 play!', 'success');
+      showMessage('Successfully traded 350 coins for 1 play!', 'success');
     }
 
     updateUI();
