@@ -7,9 +7,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary: #2563EB;
-      --primary-dark: #1E40AF;
-      --secondary: #7C3AED;
+      --primary: #6366F1;
+      --primary-dark: #4F46E5;
+      --secondary: #8B5CF6;
       --success: #22C55E;
       --error: #EF4444;
       --warning: #F59E0B;
@@ -29,7 +29,7 @@
 
     body {
       font-family: 'Inter', system-ui, sans-serif;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      background: linear-gradient(135deg, #4B5563, #1F2937);
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -53,7 +53,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 1.5rem;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(10px);
       color: white;
       border-radius: var(--border-radius);
@@ -90,7 +90,7 @@
     }
 
     .game-card {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(10px);
       padding: 2rem;
       border-radius: var(--border-radius);
@@ -99,13 +99,13 @@
       transition: var(--transition);
       text-align: center;
       color: white;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .game-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.08);
     }
 
     .game-card h3 {
@@ -147,7 +147,7 @@
     }
 
     .modal-content {
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(31, 41, 55, 0.95);
       padding: 2.5rem;
       border-radius: var(--border-radius);
       max-width: 500px;
@@ -155,6 +155,7 @@
       box-shadow: var(--shadow);
       position: relative;
       animation: slideIn 0.3s ease;
+      color: white;
     }
 
     @keyframes slideIn {
@@ -163,10 +164,7 @@
     }
 
     .modal-content h2 {
-      font-size: 1.75rem;
-      margin-bottom: 1.5rem;
-      color: var(--primary);
-      font-weight: 600;
+      color: white;
     }
 
     .close-btn {
@@ -175,20 +173,20 @@
       right: 1rem;
       font-size: 1.5rem;
       cursor: pointer;
-      color: var(--neutral);
+      color: rgba(255, 255, 255, 0.7);
       transition: var(--transition);
     }
 
     .close-btn:hover {
-      color: var(--primary);
+      color: white;
     }
 
     .btn {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
       color: white;
       padding: 0.8rem 1.5rem;
       border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       font-size: 1rem;
       font-weight: 500;
       cursor: pointer;
@@ -197,16 +195,16 @@
     }
 
     .btn:hover {
-      background: rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.15);
       transform: translateY(-2px);
     }
 
     .btn.secondary {
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.08);
     }
 
     .btn.secondary:hover {
-      background: rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.12);
     }
 
     .login-form, .convert-form {
@@ -218,16 +216,21 @@
     .login-form input, .convert-form input {
       padding: 1rem;
       font-size: 1rem;
-      border: 2px solid #E5E7EB;
+      border: 2px solid rgba(255, 255, 255, 0.1);
       border-radius: 8px;
       transition: var(--transition);
-      background: white;
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
     }
 
     .login-form input:focus, .convert-form input:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+    }
+
+    .login-form input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
     }
 
     .message {
