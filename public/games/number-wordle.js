@@ -10,6 +10,7 @@ function loadNumberWordle() {
           <span>Attempts: <span id="attempts">0</span>/6</span>
           <span>Coins: <span id="wordleCoins">0</span></span>
         </div>
+        <button class="tutorial-btn" onclick="showTutorial('numberWordle')">📖 How to Play</button>
       </div>
       <div class="game-board">
         <div class="guess-row" data-row="0">

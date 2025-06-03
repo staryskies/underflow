@@ -10,6 +10,7 @@ function loadCardFlip() {
           <span>Moves: <span id="moves">0</span></span>
           <span>Pairs: <span id="pairs">0</span>/6</span>
         </div>
+        <button class="tutorial-btn" onclick="showTutorial('cardFlip')">📖 How to Play</button>
       </div>
       <div class="card-grid">
         <div class="card" data-card="1">

@@ -10,6 +10,7 @@ function loadMemoryMole() {
           <span>Level: <span id="moleLevel">1</span></span>
           <span>Score: <span id="moleScore">0</span></span>
         </div>
+        <button class="tutorial-btn" onclick="showTutorial('memoryMole')">📖 How to Play</button>
       </div>
       <div class="mole-grid">
         <div class="mole-hole" data-index="0"></div>

@@ -10,6 +10,7 @@ function loadPatternMatch() {
           <span>Level: <span id="patternLevel">1</span></span>
           <span>Score: <span id="patternScore">0</span></span>
         </div>
+        <button class="tutorial-btn" onclick="showTutorial('patternMatch')">📖 How to Play</button>
       </div>
       <div class="pattern-grid">
         <div class="pattern-cell" data-index="0"></div>

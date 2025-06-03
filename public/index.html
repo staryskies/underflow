@@ -21,6 +21,12 @@
       --transition: all 0.3s ease;
     }
 
+    [data-theme="dark"] {
+      --background: #1F2937;
+      --card-bg: #374151;
+      --neutral: #E5E7EB;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -59,6 +65,45 @@
       border-radius: var(--border-radius);
       margin-bottom: 2rem;
       box-shadow: var(--shadow);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .instructions {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      padding: 1.5rem;
+      border-radius: var(--border-radius);
+      margin-bottom: 2rem;
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .instructions h2 {
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+
+    .instructions ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .instructions li {
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .instructions li::before {
+      content: "•";
+      color: var(--primary);
+      font-size: 1.5rem;
     }
 
     .header h1 {
@@ -340,18 +385,168 @@
     .message.show {
       opacity: 1;
     }
+
+    .theme-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      backdrop-filter: blur(5px);
+    }
+
+    .theme-modal.show {
+      display: flex;
+    }
+
+    .theme-options {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .theme-btn {
+      padding: 1rem 2rem;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 500;
+    }
+
+    .theme-btn.light {
+      background: #FFFFFF;
+      color: #1F2937;
+    }
+
+    .theme-btn.dark {
+      background: #1F2937;
+      color: #FFFFFF;
+    }
+
+    .theme-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .tutorial-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(5px);
+    }
+
+    .tutorial-modal.show {
+      display: flex;
+    }
+
+    .tutorial-content {
+      background: rgba(31, 41, 55, 0.95);
+      padding: 2.5rem;
+      border-radius: var(--border-radius);
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+      position: relative;
+      color: white;
+    }
+
+    .tutorial-content h2 {
+      color: white;
+      margin-bottom: 1rem;
+    }
+
+    .tutorial-content p {
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+
+    .tutorial-content ul {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 1rem;
+    }
+
+    .tutorial-content li {
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .tutorial-content li::before {
+      content: "•";
+      color: var(--primary);
+      font-size: 1.2rem;
+    }
+
+    .tutorial-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .tutorial-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
   </style>
 </head>
 <body>
+  <div class="theme-modal" id="themeModal">
+    <div class="modal-content">
+      <h2>Choose Your Theme</h2>
+      <p>Select your preferred theme for the best experience:</p>
+      <div class="theme-options">
+        <button class="theme-btn light" onclick="setTheme('light')">Light Mode</button>
+        <button class="theme-btn dark" onclick="setTheme('dark')">Dark Mode</button>
+      </div>
+    </div>
+  </div>
+
   <div class="container">
     <div class="header">
-      <h1>Logic Games</h1>
+      <div class="header-left">
+        <button class="btn secondary" id="backToMenuBtn" style="display: none;" onclick="returnToMenu()">← Back to Menu</button>
+        <h1>Logic Games</h1>
+      </div>
       <div class="user-info">
         <span id="playsDisplay">Plays: 5</span>
         <span id="coinsDisplay">Coins: 0</span>
         <button class="btn secondary" id="buyPlaysBtn">🎮 Buy Plays</button>
       </div>
     </div>
+
+    <div class="instructions" id="instructions">
+      <h2>How to Play</h2>
+      <ul>
+        <li>Each game costs 1 play to start</li>
+        <li>Earn coins by completing games successfully</li>
+        <li>Use coins to unlock special features</li>
+        <li>Add more plays using the admin password</li>
+      </ul>
+    </div>
+
     <div class="games-grid" id="gamesGrid">
       <div class="game-card" onclick="loadMemoryMole()">
         <h3>🦔 Memory Mole</h3>
@@ -395,6 +590,13 @@
 
   <div class="message" id="message"></div>
 
+  <div class="tutorial-modal" id="tutorialModal">
+    <div class="tutorial-content">
+      <span class="close-btn" onclick="closeTutorial()">×</span>
+      <div id="tutorialContent"></div>
+    </div>
+  </div>
+
   <script src="games/memory-mole.js"></script>
   <script src="games/number-wordle.js"></script>
   <script src="games/pattern-match.js"></script>
@@ -402,6 +604,25 @@
   <script>
     let plays = 5;
     let coins = 0;
+
+    // Theme handling
+    function showThemeModal() {
+      document.getElementById('themeModal').classList.add('show');
+    }
+
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      document.getElementById('themeModal').classList.remove('show');
+    }
+
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else {
+      showThemeModal();
+    }
 
     function updateUI() {
       document.getElementById('playsDisplay').textContent = `Plays: ${plays}`;
@@ -431,7 +652,15 @@
     function returnToMenu() {
       document.getElementById('gameContainer').style.display = 'none';
       document.getElementById('gamesGrid').style.display = 'grid';
+      document.getElementById('instructions').style.display = 'block';
+      document.getElementById('backToMenuBtn').style.display = 'none';
       document.getElementById('gameContainer').innerHTML = '';
+    }
+
+    function loadGame(gameFunction) {
+      document.getElementById('instructions').style.display = 'none';
+      document.getElementById('backToMenuBtn').style.display = 'block';
+      gameFunction();
     }
 
     async function addPlays() {
@@ -447,23 +676,14 @@
         return;
       }
 
-      try {
-        const response = await fetch('/api/add-plays', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ playCount, adminPassword })
-        });
-        const data = await response.json();
-        if (data.success) {
-          plays += playCount;
-          updateUI();
-          closeBuyPlaysModal();
-          showMessage(`Added ${playCount} plays!`, 'success');
-        } else {
-          showMessage(data.message, 'error');
-        }
-      } catch (error) {
-        showMessage('Error adding plays', 'error');
+      // Simple password check - you can change this to any password you want
+      if (adminPassword === 'admin123') {
+        plays += playCount;
+        updateUI();
+        closeBuyPlaysModal();
+        showMessage(`Added ${playCount} plays!`, 'success');
+      } else {
+        showMessage('Invalid admin password', 'error');
       }
     }
 
@@ -488,6 +708,93 @@
     document.getElementById('buyPlaysModal').addEventListener('click', (e) => {
       if (e.target === document.getElementById('buyPlaysModal')) {
         closeBuyPlaysModal();
+      }
+    });
+
+    // Update game card click handlers
+    document.querySelector('.game-card[onclick="loadMemoryMole()"]').onclick = () => loadGame(loadMemoryMole);
+    document.querySelector('.game-card[onclick="loadNumberWordle()"]').onclick = () => loadGame(loadNumberWordle);
+    document.querySelector('.game-card[onclick="loadPatternMatch()"]').onclick = () => loadGame(loadPatternMatch);
+    document.querySelector('.game-card[onclick="loadCardFlip()"]').onclick = () => loadGame(loadCardFlip);
+
+    function showTutorial(game) {
+      const tutorials = {
+        memoryMole: {
+          title: "How to Play Memory Mole",
+          content: `
+            <h2>How to Play Memory Mole</h2>
+            <p>Test your memory by following the sequence of moles that pop up!</p>
+            <ul>
+              <li>Watch carefully as the moles light up in a sequence</li>
+              <li>Click the moles in the same order they appeared</li>
+              <li>Each level adds one more mole to the sequence</li>
+              <li>Score points based on how many levels you complete</li>
+              <li>Make a mistake and the game ends</li>
+            </ul>
+            <p>Tip: Focus on the pattern rather than individual moles!</p>
+          `
+        },
+        numberWordle: {
+          title: "How to Play Number Wordle",
+          content: `
+            <h2>How to Play Number Wordle</h2>
+            <p>Guess the secret 4-digit number using logic and deduction!</p>
+            <ul>
+              <li>Enter a 4-digit number using the number pad</li>
+              <li>Green means the digit is correct and in the right position</li>
+              <li>Yellow means the digit is correct but in the wrong position</li>
+              <li>Red means the digit is not in the number</li>
+              <li>You have 6 attempts to guess the number</li>
+            </ul>
+            <p>Tip: Use the feedback from each guess to narrow down the possibilities!</p>
+          `
+        },
+        patternMatch: {
+          title: "How to Play Pattern Match",
+          content: `
+            <h2>How to Play Pattern Match</h2>
+            <p>Memorize and recreate the hidden color pattern!</p>
+            <ul>
+              <li>Watch as the cells light up in a sequence</li>
+              <li>Click the cells in the same order they appeared</li>
+              <li>Each level adds one more cell to the pattern</li>
+              <li>Score points based on how many levels you complete</li>
+              <li>Make a mistake and the game ends</li>
+            </ul>
+            <p>Tip: Try to remember the pattern as a whole rather than individual cells!</p>
+          `
+        },
+        cardFlip: {
+          title: "How to Play Card Flip Memory",
+          content: `
+            <h2>How to Play Card Flip Memory</h2>
+            <p>Match pairs of cards by remembering their positions!</p>
+            <ul>
+              <li>Click on cards to flip them over</li>
+              <li>Find matching pairs of cards</li>
+              <li>Cards stay face up when matched</li>
+              <li>Try to match all pairs in the fewest moves</li>
+              <li>Score more points for fewer moves</li>
+            </ul>
+            <p>Tip: Try to remember the positions of cards you've seen!</p>
+          `
+        }
+      };
+
+      const tutorial = tutorials[game];
+      if (tutorial) {
+        document.getElementById('tutorialContent').innerHTML = tutorial.content;
+        document.getElementById('tutorialModal').classList.add('show');
+      }
+    }
+
+    function closeTutorial() {
+      document.getElementById('tutorialModal').classList.remove('show');
+    }
+
+    document.getElementById('tutorialModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('tutorialModal')) {
+        closeTutorial();
       }
     });
 
