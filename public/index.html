@@ -29,11 +29,11 @@
 
     body {
       font-family: 'Inter', system-ui, sans-serif;
-      background: var(--background);
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      padding: 1rem;
+      padding: 2rem;
       color: var(--neutral);
     }
 
@@ -53,73 +53,81 @@
       justify-content: space-between;
       align-items: center;
       padding: 1.5rem;
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
       color: white;
       border-radius: var(--border-radius);
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
       box-shadow: var(--shadow);
     }
 
     .header h1 {
-      font-size: 1.75rem;
-      font-weight: 600;
+      font-size: 2rem;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .user-info {
       display: flex;
       gap: 1rem;
-      font-size: 0.9rem;
+      font-size: 1rem;
+      align-items: center;
     }
 
     .user-info span {
-      background: var(--primary-dark);
-      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.6rem 1.2rem;
       border-radius: 8px;
       font-weight: 500;
+      backdrop-filter: blur(5px);
     }
 
     .games-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 1.5rem;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
     }
 
     .game-card {
-      background: var(--card-bg);
-      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 2rem;
       border-radius: var(--border-radius);
       box-shadow: var(--shadow);
       cursor: pointer;
       transition: var(--transition);
       text-align: center;
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .game-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      background: rgba(255, 255, 255, 0.15);
     }
 
     .game-card h3 {
-      font-size: 1.25rem;
-      margin-bottom: 0.5rem;
-      color: var(--primary);
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
       font-weight: 600;
     }
 
     .game-card p {
-      color: var(--neutral);
-      font-size: 0.9rem;
-      margin-bottom: 0.75rem;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
     }
 
     .cost {
       display: inline-block;
       background: var(--warning);
       color: white;
-      padding: 0.25rem 0.75rem;
-      border-radius: 6px;
-      font-size: 0.85rem;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
       font-weight: 500;
     }
 
@@ -130,16 +138,17 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.7);
       justify-content: center;
       align-items: center;
       z-index: 1000;
       animation: fadeIn 0.3s ease;
+      backdrop-filter: blur(5px);
     }
 
     .modal-content {
-      background: var(--card-bg);
-      padding: 2rem;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 2.5rem;
       border-radius: var(--border-radius);
       max-width: 500px;
       width: 90%;
@@ -154,7 +163,7 @@
     }
 
     .modal-content h2 {
-      font-size: 1.5rem;
+      font-size: 1.75rem;
       margin-bottom: 1.5rem;
       color: var(--primary);
       font-weight: 600;
@@ -175,43 +184,44 @@
     }
 
     .btn {
-      background: var(--primary);
+      background: rgba(255, 255, 255, 0.2);
       color: white;
-      padding: 0.75rem 1.5rem;
+      padding: 0.8rem 1.5rem;
       border-radius: 8px;
-      border: none;
+      border: 1px solid rgba(255, 255, 255, 0.3);
       font-size: 1rem;
       font-weight: 500;
       cursor: pointer;
       transition: var(--transition);
+      backdrop-filter: blur(5px);
     }
 
     .btn:hover {
-      background: var(--primary-dark);
+      background: rgba(255, 255, 255, 0.3);
       transform: translateY(-2px);
     }
 
     .btn.secondary {
-      background: var(--neutral);
-      color: white;
+      background: rgba(255, 255, 255, 0.15);
     }
 
     .btn.secondary:hover {
-      background: #374151;
+      background: rgba(255, 255, 255, 0.25);
     }
 
-    .login-form, .shop-items, .convert-form {
+    .login-form, .convert-form {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 1.2rem;
     }
 
     .login-form input, .convert-form input {
-      padding: 0.75rem;
+      padding: 1rem;
       font-size: 1rem;
-      border: 1px solid #D1D5DB;
+      border: 2px solid #E5E7EB;
       border-radius: 8px;
       transition: var(--transition);
+      background: white;
     }
 
     .login-form input:focus, .convert-form input:focus {
@@ -220,49 +230,26 @@
       box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
     }
 
-    .shop-items div {
-      background: #F3F4F6;
-      padding: 1rem;
-      border-radius: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .prizes-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-
-    .prize-card {
-      background: #F3F4F6;
-      padding: 1rem;
-      border-radius: 8px;
-      text-align: center;
-      font-size: 0.9rem;
-    }
-
     .message {
       position: fixed;
       top: 1rem;
       right: 1rem;
-      padding: 1rem;
+      padding: 1rem 1.5rem;
       border-radius: 8px;
       color: white;
       font-weight: 500;
       z-index: 1000;
       opacity: 0;
       transition: opacity 0.3s ease;
+      backdrop-filter: blur(5px);
     }
 
     .message.success {
-      background: var(--success);
+      background: rgba(34, 197, 94, 0.9);
     }
 
     .message.error {
-      background: var(--error);
+      background: rgba(239, 68, 68, 0.9);
     }
 
     .message.show {
@@ -276,13 +263,18 @@
       border-radius: var(--border-radius);
       box-shadow: var(--shadow);
       display: none;
+      background: white;
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
       .header {
         flex-direction: column;
         gap: 1rem;
         text-align: center;
+        padding: 1rem;
       }
       .user-info {
         flex-wrap: wrap;
@@ -290,6 +282,10 @@
       }
       .games-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      .game-card {
+        padding: 1.5rem;
       }
     }
   </style>
@@ -300,7 +296,6 @@
       <h1>Memory Games Hub</h1>
       <div class="user-info">
         <span id="usernameDisplay"></span>
-        <span id="ticketsDisplay">Tickets: 0</span>
         <span id="playsDisplay">Plays: 0</span>
         <span id="coinsDisplay">Coins: 0</span>
         <button class="btn secondary" id="buyPlaysBtn">🎮 Buy Plays</button>
@@ -310,27 +305,22 @@
     <div class="games-grid" id="gamesGrid">
       <div class="game-card" onclick="loadGame('games/memory-mole.html')">
         <h3>🦔 Memory Mole</h3>
-        <p>Test your reflexes and memory</p>
+        <p>Test your reflexes and memory by following the sequence of moles that pop up</p>
         <span class="cost">1 play</span>
       </div>
       <div class="game-card" onclick="loadGame('games/number-wordle.html')">
         <h3>🔢 Number Wordle</h3>
-        <p>Guess the secret number sequence</p>
+        <p>Guess the secret 4-digit number using logic and deduction</p>
         <span class="cost">1 play</span>
       </div>
       <div class="game-card" onclick="loadGame('games/pattern-match.html')">
         <h3>🌈 Pattern Match</h3>
-        <p>Recreate the hidden color pattern</p>
-        <span class="cost">1 play</span>
-      </div>
-      <div class="game-card" onclick="loadGame('games/memory-maze.html')">
-        <h3>🗺️ Memory Maze</h3>
-        <p>Navigate the hidden maze path</p>
+        <p>Memorize and recreate the hidden color pattern</p>
         <span class="cost">1 play</span>
       </div>
       <div class="game-card" onclick="loadGame('games/card-flip-memory.html')">
         <h3>🃏 Card Flip Memory</h3>
-        <p>Match pairs by remembering card positions</p>
+        <p>Match pairs of cards by remembering their positions</p>
         <span class="cost">1 play</span>
       </div>
     </div>
@@ -432,7 +422,6 @@
 
     function updateUserUI() {
       document.getElementById('usernameDisplay').textContent = currentUser.username;
-      document.getElementById('ticketsDisplay').textContent = `Tickets: ${currentUser.tickets}`;
       document.getElementById('playsDisplay').textContent = `Plays: ${currentUser.plays}`;
       document.getElementById('coinsDisplay').textContent = `Coins: ${currentUser.coins}`;
       document.getElementById('gamesGrid').style.display = 'grid';
@@ -509,7 +498,6 @@
     function logout() {
       currentUser = null;
       document.getElementById('usernameDisplay').textContent = '';
-      document.getElementById('ticketsDisplay').textContent = 'Tickets: 0';
       document.getElementById('playsDisplay').textContent = 'Plays: 0';
       document.getElementById('coinsDisplay').textContent = 'Coins: 0';
       document.getElementById('gamesGrid').style.display = 'grid';
