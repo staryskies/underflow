@@ -175,10 +175,11 @@ app.post('/api/convert-ticket', async (req, res) => {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        // Admin can add any number of tickets
+        // Convert tickets to plays (1 ticket = 5 plays)
+        const playsToAdd = ticketCount * 5;
         await pool.query(
-            'UPDATE users SET tickets = tickets + $4 WHERE username = $2',
-            [ticketCount, username]
+            'UPDATE users SET plays = plays + $1 WHERE username = $2',
+            [playsToAdd, username]
         );
 
         const updatedUser = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
@@ -330,7 +331,11 @@ app.post('/api/start-game', async (req, res) => {
         }
 
         if (result.rows[0].plays < 1) {
-            return res.status(400).json({ success: false, message: 'No plays available' });
+            return res.status(200).json({ 
+                success: true, 
+                noPlays: true,
+                message: 'No plays available'
+            });
         }
 
         const updatedUser = await pool.query(

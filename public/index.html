@@ -303,7 +303,7 @@
         <span id="ticketsDisplay">Tickets: 0</span>
         <span id="playsDisplay">Plays: 0</span>
         <span id="coinsDisplay">Coins: 0</span>
-        <button class="btn secondary" id="shopBtn">🛒 Shop</button>
+        <button class="btn secondary" id="buyPlaysBtn">🎮 Buy Plays</button>
         <button class="btn secondary" id="logoutBtn">🚪 Logout</button>
       </div>
     </div>
@@ -349,33 +349,18 @@
     </div>
   </div>
 
-  <div class="modal" id="shopModal">
+  <div class="modal" id="buyPlaysModal">
     <div class="modal-content">
-      <span class="close-btn" onclick="closeShopModal()">×</span>
-      <h2>Shop</h2>
-      <div class="shop-items">
-        <div>
-          <span>Request Ticket to Plays Conversion</span>
-          <button class="btn" onclick="openConvertModal()">Request Conversion</button>
-        </div>
-      </div>
-      <h3>Your Prizes</h3>
-      <div class="prizes-grid" id="userPrizes"></div>
-      <h3>Available Prizes</h3>
-      <div class="prizes-grid" id="availablePrizes"></div>
-    </div>
-  </div>
-
-  <div class="modal" id="convertModal">
-    <div class="modal-content">
-      <span class="close-btn" onclick="closeConvertModal()">×</span>
-      <h2>Add Tickets (Admin Only)</h2>
+      <span class="close-btn" onclick="closeBuyPlaysModal()">×</span>
+      <h2>Buy More Plays</h2>
       <div class="convert-form">
-        <input type="number" id="ticketCount" placeholder="Number of tickets to add" min="1" value="1" required>
+        <p>Convert your tickets to plays:</p>
+        <p>1 ticket = 5 plays</p>
+        <input type="number" id="ticketCount" placeholder="Number of tickets to convert" min="1" value="1" required>
         <input type="password" id="adminPassword" placeholder="Admin password" required>
         <div>
-          <button class="btn" onclick="convertTicket()">Add Tickets</button>
-          <button class="btn secondary" onclick="closeConvertModal()">Cancel</button>
+          <button class="btn" onclick="convertTicket()">Convert Tickets</button>
+          <button class="btn secondary" onclick="closeBuyPlaysModal()">Cancel</button>
         </div>
       </div>
     </div>
@@ -397,22 +382,13 @@
       document.getElementById('passcodeInput').value = '';
     }
 
-    function showShopModal() {
-      document.getElementById('shopModal').style.display = 'flex';
-      loadPrizes();
-    }
-
-    function closeShopModal() {
-      document.getElementById('shopModal').style.display = 'none';
-    }
-
-    function openConvertModal() {
-      document.getElementById('convertModal').style.display = 'flex';
+    function showBuyPlaysModal() {
+      document.getElementById('buyPlaysModal').style.display = 'flex';
       document.getElementById('ticketCount').focus();
     }
 
-    function closeConvertModal() {
-      document.getElementById('convertModal').style.display = 'none';
+    function closeBuyPlaysModal() {
+      document.getElementById('buyPlaysModal').style.display = 'none';
       document.getElementById('ticketCount').value = '1';
       document.getElementById('adminPassword').value = '';
     }
@@ -473,77 +449,28 @@
         });
         const data = await response.json();
         if (data.success) {
-          currentUser = data.user;
-          updateUserUI();
-          const gameFrame = document.getElementById('gameFrame');
-          gameFrame.src = gameUrl;
-          gameFrame.style.display = 'block';
-          document.getElementById('gamesGrid').style.display = 'none';
-          gameFrame.contentWindow.postMessage({ type: 'setTimeout' }, '*');
+          if (data.noPlays) {
+            const gameFrame = document.getElementById('gameFrame');
+            gameFrame.src = gameUrl;
+            gameFrame.style.display = 'block';
+            document.getElementById('gamesGrid').style.display = 'none';
+            setTimeout(() => {
+              gameFrame.contentWindow.postMessage({ type: 'noPlays' }, '*');
+            }, 100);
+          } else {
+            currentUser = data.user;
+            updateUserUI();
+            const gameFrame = document.getElementById('gameFrame');
+            gameFrame.src = gameUrl;
+            gameFrame.style.display = 'block';
+            document.getElementById('gamesGrid').style.display = 'none';
+            gameFrame.contentWindow.postMessage({ type: 'setTimeout' }, '*');
+          }
         } else {
           showMessage(data.message, 'error');
         }
       } catch (error) {
         showMessage('Error starting game', 'error');
-      }
-    }
-
-    async function loadPrizes() {
-      try {
-        const response = await fetch('/api/prizes');
-        const data = await response.json();
-        if (data.success) {
-          const availablePrizes = document.getElementById('availablePrizes');
-          availablePrizes.innerHTML = '';
-          data.prizes.forEach(prize => {
-            const prizeEl = document.createElement('div');
-            prizeEl.className = 'prize-card';
-            prizeEl.innerHTML = `
-              <h4>${prize.name}</h4>
-              <p>${prize.description}</p>
-              <p>Cost: ${prize.coin_cost} coins</p>
-              <p>Stock: ${prize.stock}</p>
-              <button class="btn" onclick="buyPrize(${prize.prize_id})">Buy</button>
-            `;
-            availablePrizes.appendChild(prizeEl);
-          });
-
-          const userPrizes = document.getElementById('userPrizes');
-          userPrizes.innerHTML = '';
-          currentUser.prizes.forEach(prize => {
-            const prizeEl = document.createElement('div');
-            prizeEl.className = 'prize-card';
-            prizeEl.innerHTML = `
-              <h4>${prize.name}</h4>
-              <p>${prize.description}</p>
-              <p>Acquired: ${new Date(prize.acquired_at).toLocaleDateString()}</p>
-            `;
-            userPrizes.appendChild(prizeEl);
-          });
-        }
-      } catch (error) {
-        showMessage('Error loading prizes', 'error');
-      }
-    }
-
-    async function buyPrize(prizeId) {
-      try {
-        const response = await fetch('/api/buy-prize', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: currentUser.username, prizeId })
-        });
-        const data = await response.json();
-        if (data.success) {
-          currentUser = data.user;
-          updateUserUI();
-          loadPrizes();
-          showMessage('Prize purchased successfully!', 'success');
-        } else {
-          showMessage(data.message, 'error');
-        }
-      } catch (error) {
-        showMessage('Error purchasing prize', 'error');
       }
     }
 
@@ -569,13 +496,13 @@
         if (data.success) {
           currentUser = data.user;
           updateUserUI();
-          closeConvertModal();
-          showMessage(`Added ${ticketCount} ticket(s) successfully!`, 'success');
+          closeBuyPlaysModal();
+          showMessage(`Converted ${ticketCount} ticket(s) to ${ticketCount * 5} plays!`, 'success');
         } else {
           showMessage(data.message, 'error');
         }
       } catch (error) {
-        showMessage('Error adding tickets', 'error');
+        showMessage('Error converting tickets', 'error');
       }
     }
 
@@ -614,18 +541,12 @@
       }
     });
 
-    document.getElementById('shopBtn').addEventListener('click', showShopModal);
     document.getElementById('logoutBtn').addEventListener('click', logout);
+    document.getElementById('buyPlaysBtn').addEventListener('click', showBuyPlaysModal);
 
-    document.getElementById('convertModal').addEventListener('click', (e) => {
-      if (e.target === document.getElementById('convertModal')) {
-        closeConvertModal();
-      }
-    });
-
-    document.getElementById('shopModal').addEventListener('click', (e) => {
-      if (e.target === document.getElementById('shopModal')) {
-        closeShopModal();
+    document.getElementById('buyPlaysModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('buyPlaysModal')) {
+        closeBuyPlaysModal();
       }
     });
 
