@@ -353,28 +353,28 @@
       </div>
     </div>
     <div class="games-grid" id="gamesGrid">
-      <div class="game-card" onclick="loadGame('games/memory-mole.html')">
+      <div class="game-card" onclick="loadMemoryMole()">
         <h3>🦔 Memory Mole</h3>
         <p>Test your reflexes and memory by following the sequence of moles that pop up</p>
         <span class="cost">1 play</span>
       </div>
-      <div class="game-card" onclick="loadGame('games/number-wordle.html')">
+      <div class="game-card" onclick="loadNumberWordle()">
         <h3>🔢 Number Wordle</h3>
         <p>Guess the secret 4-digit number using logic and deduction</p>
         <span class="cost">1 play</span>
       </div>
-      <div class="game-card" onclick="loadGame('games/pattern-match.html')">
+      <div class="game-card" onclick="loadPatternMatch()">
         <h3>🌈 Pattern Match</h3>
         <p>Memorize and recreate the hidden color pattern</p>
         <span class="cost">1 play</span>
       </div>
-      <div class="game-card" onclick="loadGame('games/card-flip-memory.html')">
+      <div class="game-card" onclick="loadCardFlip()">
         <h3>🃏 Card Flip Memory</h3>
         <p>Match pairs of cards by remembering their positions</p>
         <span class="cost">1 play</span>
       </div>
     </div>
-    <iframe id="gameFrame"></iframe>
+    <div id="gameContainer"></div>
   </div>
 
   <div class="modal" id="buyPlaysModal">
@@ -395,6 +395,10 @@
 
   <div class="message" id="message"></div>
 
+  <script src="games/memory-mole.js"></script>
+  <script src="games/number-wordle.js"></script>
+  <script src="games/pattern-match.js"></script>
+  <script src="games/card-flip.js"></script>
   <script>
     let plays = 5;
     let coins = 0;
@@ -424,20 +428,10 @@
       }, 3000);
     }
 
-    async function loadGame(gameUrl) {
-      if (plays < 1) {
-        showMessage('No plays remaining!', 'error');
-        return;
-      }
-      
-      plays--;
-      updateUI();
-      
-      const gameFrame = document.getElementById('gameFrame');
-      gameFrame.src = gameUrl;
-      gameFrame.style.display = 'block';
-      document.getElementById('gamesGrid').style.display = 'none';
-      gameFrame.contentWindow.postMessage({ type: 'setTimeout' }, '*');
+    function returnToMenu() {
+      document.getElementById('gameContainer').style.display = 'none';
+      document.getElementById('gamesGrid').style.display = 'grid';
+      document.getElementById('gameContainer').innerHTML = '';
     }
 
     async function addPlays() {
@@ -473,27 +467,21 @@
       }
     }
 
-    window.addEventListener('message', (event) => {
-      if (event.data && event.data.type === 'awardCoins') {
-        coins += event.data.coins;
-        updateUI();
-        showMessage(`Earned ${event.data.coins} coins!`, 'success');
-      } else if (event.data && event.data.type === 'gameOver') {
-        document.getElementById('gameFrame').style.display = 'none';
-        document.getElementById('gamesGrid').style.display = 'grid';
-        document.getElementById('gameFrame').src = '';
-      } else if (event.data && event.data.type === 'usePlay') {
-        if (plays > 0) {
-          plays--;
-          updateUI();
-        } else {
-          showMessage('No plays remaining!', 'error');
-          document.getElementById('gameFrame').style.display = 'none';
-          document.getElementById('gamesGrid').style.display = 'grid';
-          document.getElementById('gameFrame').src = '';
-        }
+    function usePlay() {
+      if (plays < 1) {
+        showMessage('No plays remaining!', 'error');
+        return false;
       }
-    });
+      plays--;
+      updateUI();
+      return true;
+    }
+
+    function awardCoins(amount) {
+      coins += amount;
+      updateUI();
+      showMessage(`Earned ${amount} coins!`, 'success');
+    }
 
     document.getElementById('buyPlaysBtn').addEventListener('click', showBuyPlaysModal);
 
