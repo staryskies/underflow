@@ -26,7 +26,6 @@ function loadPatternMatch() {
       <div class="game-controls">
         <button class="btn" id="startPatternBtn">Start Game</button>
         <button class="btn" id="resetPatternBtn">Reset</button>
-        <button class="btn secondary" id="backToMenuBtn">Back to Menu</button>
       </div>
     </div>
   `;
@@ -196,6 +195,4 @@ function loadPatternMatch() {
     if (!usePlay()) return;
     startGame();
   });
-
-  document.getElementById('backToMenuBtn').addEventListener('click', returnToMenu);
 } 

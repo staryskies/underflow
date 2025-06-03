@@ -51,21 +51,10 @@ function loadNumberWordle() {
         </div>
       </div>
       <div class="game-controls">
-        <div class="number-pad">
-          <button class="num-btn">1</button>
-          <button class="num-btn">2</button>
-          <button class="num-btn">3</button>
-          <button class="num-btn">4</button>
-          <button class="num-btn">5</button>
-          <button class="num-btn">6</button>
-          <button class="num-btn">7</button>
-          <button class="num-btn">8</button>
-          <button class="num-btn">9</button>
-          <button class="num-btn">0</button>
-          <button class="num-btn delete">⌫</button>
-          <button class="num-btn enter">Enter</button>
+        <div class="input-group">
+          <input type="text" id="numberInput" maxlength="4" placeholder="Enter 4-digit number" pattern="[0-9]*" inputmode="numeric">
+          <button class="btn" id="submitGuess">Submit</button>
         </div>
-        <button class="btn secondary" id="backToMenuBtn">Back to Menu</button>
       </div>
     </div>
   `;
@@ -145,30 +134,33 @@ function loadNumberWordle() {
       border-color: var(--error);
     }
 
-    .number-pad {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.5rem;
+    .input-group {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
       margin-bottom: 1rem;
     }
 
-    .num-btn {
+    #numberInput {
+      width: 200px;
+      padding: 0.8rem;
+      font-size: 1.2rem;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
       background: rgba(255, 255, 255, 0.1);
       color: white;
-      border: none;
-      padding: 1rem;
-      font-size: 1.2rem;
-      border-radius: 8px;
-      cursor: pointer;
+      text-align: center;
       transition: all 0.3s ease;
     }
 
-    .num-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
+    #numberInput:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
     }
 
-    .num-btn.delete, .num-btn.enter {
-      background: rgba(255, 255, 255, 0.15);
+    #numberInput::placeholder {
+      color: rgba(255, 255, 255, 0.5);
     }
 
     .game-controls {
@@ -183,7 +175,6 @@ function loadNumberWordle() {
   // Game logic
   let secretNumber = generateSecretNumber();
   let currentRow = 0;
-  let currentCol = 0;
   let attempts = 0;
   let coins = 0;
 
@@ -200,28 +191,18 @@ function loadNumberWordle() {
     document.getElementById('wordleCoins').textContent = coins;
   }
 
-  function handleNumberClick(num) {
-    if (currentCol < 4 && currentRow < 6) {
-      const cell = document.querySelector(`.guess-cell[data-row="${currentRow}"][data-col="${currentCol}"]`);
-      cell.textContent = num;
-      currentCol++;
+  function handleSubmit() {
+    const input = document.getElementById('numberInput');
+    const guess = input.value;
+    
+    if (guess.length !== 4) {
+      showMessage('Please enter a 4-digit number', 'error');
+      return;
     }
-  }
-
-  function handleDelete() {
-    if (currentCol > 0) {
-      currentCol--;
-      const cell = document.querySelector(`.guess-cell[data-row="${currentRow}"][data-col="${currentCol}"]`);
-      cell.textContent = '';
-    }
-  }
-
-  function handleEnter() {
-    if (currentCol !== 4) return;
 
     const row = document.querySelector(`.guess-row[data-row="${currentRow}"]`);
     const cells = row.querySelectorAll('.guess-cell');
-    const guess = Array.from(cells).map(cell => parseInt(cell.textContent));
+    const guessArray = guess.split('').map(Number);
     
     let correct = 0;
     let wrongPosition = 0;
@@ -229,7 +210,8 @@ function loadNumberWordle() {
 
     // Check for correct positions
     for (let i = 0; i < 4; i++) {
-      if (guess[i] === secretCopy[i]) {
+      cells[i].textContent = guessArray[i];
+      if (guessArray[i] === secretCopy[i]) {
         correct++;
         cells[i].classList.add('correct');
         secretCopy[i] = -1;
@@ -240,7 +222,7 @@ function loadNumberWordle() {
     for (let i = 0; i < 4; i++) {
       if (cells[i].classList.contains('correct')) continue;
       
-      const index = secretCopy.indexOf(guess[i]);
+      const index = secretCopy.indexOf(guessArray[i]);
       if (index !== -1) {
         wrongPosition++;
         cells[i].classList.add('wrong-position');
@@ -252,6 +234,7 @@ function loadNumberWordle() {
 
     attempts++;
     updateUI();
+    input.value = '';
 
     if (correct === 4) {
       coins = Math.max(100 - (attempts - 1) * 10, 10);
@@ -267,21 +250,14 @@ function loadNumberWordle() {
       }, 500);
     } else {
       currentRow++;
-      currentCol = 0;
     }
   }
 
-  document.querySelectorAll('.num-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (btn.classList.contains('delete')) {
-        handleDelete();
-      } else if (btn.classList.contains('enter')) {
-        handleEnter();
-      } else {
-        handleNumberClick(btn.textContent);
-      }
-    });
+  document.getElementById('numberInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      handleSubmit();
+    }
   });
 
-  document.getElementById('backToMenuBtn').addEventListener('click', returnToMenu);
+  document.getElementById('submitGuess').addEventListener('click', handleSubmit);
 } 

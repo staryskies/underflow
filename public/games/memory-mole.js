@@ -25,7 +25,6 @@ function loadMemoryMole() {
       </div>
       <div class="game-controls">
         <button class="btn" id="startMoleBtn">Start Game</button>
-        <button class="btn secondary" id="backToMenuBtn">Back to Menu</button>
       </div>
     </div>
   `;
@@ -187,6 +186,4 @@ function loadMemoryMole() {
     document.getElementById('startMoleBtn').disabled = true;
     startGame();
   });
-
-  document.getElementById('backToMenuBtn').addEventListener('click', returnToMenu);
 } 
