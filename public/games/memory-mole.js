@@ -13,16 +13,15 @@ function loadMemoryMole() {
         </div>
         <button class="tutorial-btn" onclick="showTutorial('memoryMole')">📖 How to Play</button>
       </div>
+      <div class="layer-indicator">
+        <div class="layer active" data-layer="1">Layer 1</div>
+        <div class="layer" data-layer="2">Layer 2</div>
+        <div class="layer" data-layer="3">Layer 3</div>
+      </div>
       <div class="mole-grid">
-        <div class="mole-hole" data-index="0"></div>
-        <div class="mole-hole" data-index="1"></div>
-        <div class="mole-hole" data-index="2"></div>
-        <div class="mole-hole" data-index="3"></div>
-        <div class="mole-hole" data-index="4"></div>
-        <div class="mole-hole" data-index="5"></div>
-        <div class="mole-hole" data-index="6"></div>
-        <div class="mole-hole" data-index="7"></div>
-        <div class="mole-hole" data-index="8"></div>
+        ${Array(16).fill(0).map((_, i) => `
+          <div class="mole-hole" data-index="${i}"></div>
+        `).join('')}
       </div>
       <div class="game-controls">
         <button class="btn" id="startMoleBtn">Start Game</button>
@@ -66,11 +65,31 @@ function loadMemoryMole() {
       font-size: 1.2rem;
     }
 
+    .layer-indicator {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .layer {
+      padding: 0.5rem 1rem;
+      border-radius: var(--border-radius);
+      background: rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .layer.active {
+      background: var(--primary);
+      transform: scale(1.1);
+    }
+
     .mole-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 1rem;
-      max-width: 400px;
+      max-width: 500px;
       margin: 0 auto 2rem;
     }
 
@@ -138,6 +157,7 @@ function loadMemoryMole() {
   let timeLeft = 30;
   let timerInterval;
   let isWatching = true;
+  let currentLayer = 1;
 
   function updateUI() {
     document.getElementById('moleLevel').textContent = level;
@@ -147,20 +167,21 @@ function loadMemoryMole() {
     // Update phase indicators
     document.querySelector('.phase-indicator.watch').classList.toggle('active', isWatching);
     document.querySelector('.phase-indicator.repeat').classList.toggle('active', !isWatching);
+    
+    // Update layer indicators
+    document.querySelectorAll('.layer').forEach(layer => {
+      layer.classList.toggle('active', parseInt(layer.dataset.layer) === currentLayer);
+    });
   }
 
-  function showMoles(indices, duration) {
-    indices.forEach(index => {
-      const hole = document.querySelector(`.mole-hole[data-index="${index}"]`);
-      hole.classList.add('active');
-    });
-    
+  function showMole(index, layer) {
+    const hole = document.querySelector(`.mole-hole[data-index="${index}"]`);
+    hole.classList.add('active');
+    hole.dataset.layer = layer;
     setTimeout(() => {
-      indices.forEach(index => {
-        const hole = document.querySelector(`.mole-hole[data-index="${index}"]`);
-        hole.classList.remove('active');
-      });
-    }, duration);
+      hole.classList.remove('active');
+      delete hole.dataset.layer;
+    }, 1000);
   }
 
   function playSequence() {
@@ -171,18 +192,21 @@ function loadMemoryMole() {
     
     const interval = setInterval(() => {
       if (i < sequence.length) {
-        const pair = sequence.slice(i, i + 2);
-        showMoles(pair, 1000);
-        i += 2;
+        const { index, layer } = sequence[i];
+        currentLayer = layer;
+        updateUI();
+        showMole(index, layer);
+        i++;
       } else {
         clearInterval(interval);
         setTimeout(() => {
           isWatching = false;
           isPlaying = true;
+          currentLayer = 1;
           updateUI();
         }, 1000);
       }
-    }, 2000);
+    }, 1500);
   }
 
   function startTimer() {
@@ -214,21 +238,19 @@ function loadMemoryMole() {
   }
 
   function addToSequence() {
-    // Add pairs of moles based on level
-    const numPairs = Math.min(level + 1, 4);
-    for (let i = 0; i < numPairs; i++) {
-      const firstMole = Math.floor(Math.random() * 9);
-      let secondMole;
-      do {
-        secondMole = Math.floor(Math.random() * 9);
-      } while (secondMole === firstMole);
-      sequence.push(firstMole, secondMole);
+    // Add moles based on level
+    const numMoles = Math.min(level + 2, 5);
+    for (let i = 0; i < numMoles; i++) {
+      const layer = Math.floor(Math.random() * 3) + 1;
+      const index = Math.floor(Math.random() * 16);
+      sequence.push({ index, layer });
     }
   }
 
   function checkSequence() {
     for (let i = 0; i < playerSequence.length; i++) {
-      if (playerSequence[i] !== sequence[i]) {
+      if (playerSequence[i].index !== sequence[i].index || 
+          playerSequence[i].layer !== sequence[i].layer) {
         return false;
       }
     }
@@ -241,8 +263,8 @@ function loadMemoryMole() {
       return;
     }
     
-    showMoles([index], 500);
-    playerSequence.push(index);
+    showMole(index, currentLayer);
+    playerSequence.push({ index, layer: currentLayer });
     
     if (playerSequence.length === sequence.length) {
       if (checkSequence()) {
@@ -262,6 +284,10 @@ function loadMemoryMole() {
         awardCoins(score);
         showMessage('Wrong sequence!', 'error');
       }
+    } else {
+      // Move to next layer
+      currentLayer = (currentLayer % 3) + 1;
+      updateUI();
     }
   }
 
