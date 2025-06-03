@@ -18,7 +18,7 @@ function loadCardFlip() {
           <div class="card" data-card="${Math.floor(i/2)}">
             <div class="card-inner">
               <div class="card-front"></div>
-              <div class="card-back">${['🎮', '🎲', '🎯', '🎨', '🎭', '🎪', '🎡', '🎢', '🎠', '🎪', '🎯', '🎲'][Math.floor(i/2)]}</div>
+              <div class="card-back">${['🎮', '🎲', '🎯', '🎨', '🎭', '🎪', '🎡', '🎢', '🎠', '🎨', '🎭', '🎪'][Math.floor(i/2)]}</div>
             </div>
           </div>
         `).join('')}
@@ -64,13 +64,13 @@ function loadCardFlip() {
     .card-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
-      gap: 1rem;
-      max-width: 800px;
+      gap: 0.5rem;
+      max-width: 600px;
       margin: 0 auto 2rem;
     }
 
     .card {
-      aspect-ratio: 2/3;
+      aspect-ratio: 3/4;
       perspective: 1000px;
       cursor: pointer;
     }
@@ -92,21 +92,24 @@ function loadCardFlip() {
       width: 100%;
       height: 100%;
       backface-visibility: hidden;
-      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2rem;
+      border-radius: 8px;
+      font-size: 3.5rem;
     }
 
     .card-front {
       background: var(--primary);
-      border: 2px solid rgba(255, 255, 255, 0.1);
+      transform: rotateY(180deg);
     }
 
     .card-back {
       background: var(--warning);
-      transform: rotateY(180deg);
+    }
+
+    .card:hover:not(.flipped) .card-inner {
+      transform: translateY(-5px);
     }
 
     .card.matched .card-back {
@@ -142,8 +145,24 @@ function loadCardFlip() {
 
   function shuffleCards() {
     const cards = document.querySelectorAll('.card');
-    cards.forEach(card => {
-      const randomPos = Math.floor(Math.random() * cards.length);
+    const cardArray = Array.from(cards);
+    
+    // Ensure no more than 2 of the same icon
+    const iconCounts = {};
+    cardArray.forEach(card => {
+      const icon = card.querySelector('.card-back').textContent;
+      iconCounts[icon] = (iconCounts[icon] || 0) + 1;
+    });
+
+    // If any icon appears more than twice, regenerate the grid
+    if (Object.values(iconCounts).some(count => count > 2)) {
+      loadCardFlip();
+      return;
+    }
+
+    // Shuffle the cards
+    cardArray.forEach(card => {
+      const randomPos = Math.floor(Math.random() * cardArray.length);
       card.style.order = randomPos;
     });
   }
@@ -180,7 +199,7 @@ function loadCardFlip() {
   }
 
   function handleCardClick(card) {
-    if (!isPlaying || flippedCards.length >= 2 || card.classList.contains('flipped')) return;
+    if (!isPlaying || flippedCards.length >= 2 || card.classList.contains('flipped') || card.classList.contains('matched')) return;
 
     card.classList.add('flipped');
     flippedCards.push(card);

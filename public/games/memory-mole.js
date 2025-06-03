@@ -192,10 +192,15 @@ function loadMemoryMole() {
     
     const interval = setInterval(() => {
       if (i < sequence.length) {
-        const { index, layer } = sequence[i];
-        currentLayer = layer;
+        const currentMoles = sequence[i];
+        currentLayer = currentMoles[0].layer;
         updateUI();
-        showMole(index, layer);
+        
+        // Show all moles for current layer
+        currentMoles.forEach(mole => {
+          showMole(mole.index, mole.layer);
+        });
+        
         i++;
       } else {
         clearInterval(interval);
@@ -206,7 +211,7 @@ function loadMemoryMole() {
           updateUI();
         }, 1000);
       }
-    }, 1500);
+    }, 2000);
   }
 
   function startTimer() {
@@ -239,20 +244,37 @@ function loadMemoryMole() {
 
   function addToSequence() {
     // Add moles based on level
-    const numMoles = Math.min(level + 2, 5);
-    for (let i = 0; i < numMoles; i++) {
-      const layer = Math.floor(Math.random() * 3) + 1;
-      const index = Math.floor(Math.random() * 16);
-      sequence.push({ index, layer });
+    const numLayers = Math.min(level + 1, 3);
+    sequence = [];
+    
+    for (let layer = 1; layer <= numLayers; layer++) {
+      const molesInLayer = Math.min(level, 3); // 1-3 moles per layer
+      const layerMoles = [];
+      
+      for (let i = 0; i < molesInLayer; i++) {
+        let index;
+        do {
+          index = Math.floor(Math.random() * 16);
+        } while (layerMoles.some(mole => mole.index === index));
+        
+        layerMoles.push({ index, layer });
+      }
+      
+      sequence.push(layerMoles);
     }
   }
 
   function checkSequence() {
     for (let i = 0; i < playerSequence.length; i++) {
-      if (playerSequence[i].index !== sequence[i].index || 
-          playerSequence[i].layer !== sequence[i].layer) {
-        return false;
-      }
+      const currentLayerMoles = sequence[i];
+      const playerMole = playerSequence[i];
+      
+      // Check if the clicked mole exists in the current layer's sequence
+      const isCorrect = currentLayerMoles.some(mole => 
+        mole.index === playerMole.index && mole.layer === playerMole.layer
+      );
+      
+      if (!isCorrect) return false;
     }
     return true;
   }
