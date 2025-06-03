@@ -9,6 +9,7 @@ function loadMemoryMole() {
         <div class="game-stats">
           <span>Level: <span id="moleLevel">1</span></span>
           <span>Score: <span id="moleScore">0</span></span>
+          <span>Time: <span id="moleTimer">30</span>s</span>
         </div>
         <button class="tutorial-btn" onclick="showTutorial('memoryMole')">📖 How to Play</button>
       </div>
@@ -25,6 +26,10 @@ function loadMemoryMole() {
       </div>
       <div class="game-controls">
         <button class="btn" id="startMoleBtn">Start Game</button>
+      </div>
+      <div class="game-phase">
+        <div class="phase-indicator watch">Watch</div>
+        <div class="phase-indicator repeat">Repeat</div>
       </div>
     </div>
   `;
@@ -81,6 +86,8 @@ function loadMemoryMole() {
 
     .mole-hole.active {
       background: var(--warning);
+      transform: scale(1.1);
+      box-shadow: 0 0 20px var(--warning);
     }
 
     .mole-hole:hover:not(.active) {
@@ -91,6 +98,33 @@ function loadMemoryMole() {
       display: flex;
       justify-content: center;
       gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .game-phase {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    .phase-indicator {
+      padding: 0.5rem 1rem;
+      border-radius: var(--border-radius);
+      font-weight: bold;
+      opacity: 0.5;
+      transition: all 0.3s ease;
+    }
+
+    .phase-indicator.active {
+      opacity: 1;
+      background: var(--primary);
+      transform: scale(1.1);
+    }
+
+    #moleTimer {
+      color: var(--warning);
+      font-weight: bold;
     }
   `;
   document.head.appendChild(styleSheet);
@@ -101,31 +135,71 @@ function loadMemoryMole() {
   let sequence = [];
   let playerSequence = [];
   let isPlaying = false;
+  let timeLeft = 30;
+  let timerInterval;
+  let isWatching = true;
 
   function updateUI() {
     document.getElementById('moleLevel').textContent = level;
     document.getElementById('moleScore').textContent = score;
+    document.getElementById('moleTimer').textContent = timeLeft;
+    
+    // Update phase indicators
+    document.querySelector('.phase-indicator.watch').classList.toggle('active', isWatching);
+    document.querySelector('.phase-indicator.repeat').classList.toggle('active', !isWatching);
   }
 
-  function showMole(index) {
-    const hole = document.querySelector(`.mole-hole[data-index="${index}"]`);
-    hole.classList.add('active');
+  function showMoles(indices, duration) {
+    indices.forEach(index => {
+      const hole = document.querySelector(`.mole-hole[data-index="${index}"]`);
+      hole.classList.add('active');
+    });
+    
     setTimeout(() => {
-      hole.classList.remove('active');
-    }, 1000);
+      indices.forEach(index => {
+        const hole = document.querySelector(`.mole-hole[data-index="${index}"]`);
+        hole.classList.remove('active');
+      });
+    }, duration);
   }
 
   function playSequence() {
     let i = 0;
+    isPlaying = false;
+    isWatching = true;
+    updateUI();
+    
     const interval = setInterval(() => {
       if (i < sequence.length) {
-        showMole(sequence[i]);
-        i++;
+        const pair = sequence.slice(i, i + 2);
+        showMoles(pair, 1000);
+        i += 2;
       } else {
         clearInterval(interval);
-        isPlaying = true;
+        setTimeout(() => {
+          isWatching = false;
+          isPlaying = true;
+          updateUI();
+        }, 1000);
       }
-    }, 1200);
+    }, 2000);
+  }
+
+  function startTimer() {
+    timeLeft = 30;
+    updateUI();
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      updateUI();
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        isPlaying = false;
+        document.getElementById('startMoleBtn').textContent = 'Try Again';
+        document.getElementById('startMoleBtn').disabled = false;
+        awardCoins(score);
+        showMessage('Time\'s up!', 'error');
+      }
+    }, 1000);
   }
 
   function startGame() {
@@ -136,10 +210,20 @@ function loadMemoryMole() {
     updateUI();
     addToSequence();
     playSequence();
+    startTimer();
   }
 
   function addToSequence() {
-    sequence.push(Math.floor(Math.random() * 9));
+    // Add pairs of moles based on level
+    const numPairs = Math.min(level + 1, 4);
+    for (let i = 0; i < numPairs; i++) {
+      const firstMole = Math.floor(Math.random() * 9);
+      let secondMole;
+      do {
+        secondMole = Math.floor(Math.random() * 9);
+      } while (secondMole === firstMole);
+      sequence.push(firstMole, secondMole);
+    }
   }
 
   function checkSequence() {
@@ -152,9 +236,12 @@ function loadMemoryMole() {
   }
 
   function handleMoleClick(index) {
-    if (!isPlaying) return;
+    if (!isPlaying) {
+      showMessage('Wait for the pattern to finish...', 'error');
+      return;
+    }
     
-    showMole(index);
+    showMoles([index], 500);
     playerSequence.push(index);
     
     if (playerSequence.length === sequence.length) {
@@ -168,10 +255,12 @@ function loadMemoryMole() {
           playSequence();
         }, 1000);
       } else {
+        clearInterval(timerInterval);
         isPlaying = false;
         document.getElementById('startMoleBtn').textContent = 'Try Again';
         document.getElementById('startMoleBtn').disabled = false;
         awardCoins(score);
+        showMessage('Wrong sequence!', 'error');
       }
     }
   }

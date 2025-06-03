@@ -179,11 +179,16 @@ function loadNumberWordle() {
   let coins = 0;
 
   function generateSecretNumber() {
-    const digits = new Set();
-    while (digits.size < 4) {
-      digits.add(Math.floor(Math.random() * 10));
+    const digits = [];
+    const available = Array.from({length: 10}, (_, i) => i);
+    
+    for (let i = 0; i < 4; i++) {
+      const randomIndex = Math.floor(Math.random() * available.length);
+      digits.push(available[randomIndex]);
+      available.splice(randomIndex, 1);
     }
-    return Array.from(digits);
+    
+    return digits;
   }
 
   function updateUI() {
@@ -197,6 +202,13 @@ function loadNumberWordle() {
     
     if (guess.length !== 4) {
       showMessage('Please enter a 4-digit number', 'error');
+      return;
+    }
+
+    // Check for repeating digits
+    const digits = new Set(guess.split(''));
+    if (digits.size !== 4) {
+      showMessage('Each digit must be unique', 'error');
       return;
     }
 

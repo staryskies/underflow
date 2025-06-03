@@ -8,87 +8,23 @@ function loadCardFlip() {
         <h2>🃏 Card Flip Memory</h2>
         <div class="game-stats">
           <span>Moves: <span id="moves">0</span></span>
-          <span>Pairs: <span id="pairs">0</span>/6</span>
+          <span>Pairs: <span id="pairs">0</span>/12</span>
+          <span>Time: <span id="cardTimer">60</span>s</span>
         </div>
         <button class="tutorial-btn" onclick="showTutorial('cardFlip')">📖 How to Play</button>
       </div>
       <div class="card-grid">
-        <div class="card" data-card="1">
-          <div class="card-inner">
-            <div class="card-front">?</div>
-            <div class="card-back">🎮</div>
+        ${Array(24).fill(0).map((_, i) => `
+          <div class="card" data-card="${Math.floor(i/2)}">
+            <div class="card-inner">
+              <div class="card-front"></div>
+              <div class="card-back">${['🎮', '🎲', '🎯', '🎨', '🎭', '🎪', '🎡', '🎢', '🎠', '🎪', '🎯', '🎲'][Math.floor(i/2)]}</div>
+            </div>
           </div>
-        </div>
-        <div class="card" data-card="2">
-          <div class="card-inner">
-            <div class="card-front">?</div>
-            <div class="card-back">🎲</div>
-          </div>
-        </div>
-        <div class="card" data-card="3">
-          <div class="card-inner">
-            <div class="card-front">?</div>
-            <div class="card-back">🎯</div>
-          </div>
-        </div>
-        <div class="card" data-card="4">
-          <div class="card-inner">
-            <div class="card-front">?</div>
-            <div class="card-back">🎮</div>
-          </div>
-        </div>
-        <div class="card" data-card="5">
-          <div class="card-inner">
-            <div class="card-front">?</div>
-            <div class="card-back">🎲</div>
-          </div>
-        </div>
-        <div class="card" data-card="6">
-          <div class="card-inner">
-            <div class="card-front">?</div>
-            <div class="card-back">🎯</div>
-          </div>
-        </div>
-        <div class="card" data-card="7">
-          <div class="card-inner">
-            <div class="card-front">?</div>
-            <div class="card-back">🎮</div>
-          </div>
-        </div>
-        <div class="card" data-card="8">
-          <div class="card-inner">
-            <div class="card-front">?</div>
-            <div class="card-back">🎲</div>
-          </div>
-        </div>
-        <div class="card" data-card="9">
-          <div class="card-inner">
-            <div class="card-front">?</div>
-            <div class="card-back">🎯</div>
-          </div>
-        </div>
-        <div class="card" data-card="10">
-          <div class="card-inner">
-            <div class="card-front">?</div>
-            <div class="card-back">🎮</div>
-          </div>
-        </div>
-        <div class="card" data-card="11">
-          <div class="card-inner">
-            <div class="card-front">?</div>
-            <div class="card-back">🎲</div>
-          </div>
-        </div>
-        <div class="card" data-card="12">
-          <div class="card-inner">
-            <div class="card-front">?</div>
-            <div class="card-back">🎯</div>
-          </div>
-        </div>
+        `).join('')}
       </div>
       <div class="game-controls">
         <button class="btn" id="startCardBtn">Start Game</button>
-        <button class="btn" id="resetCardBtn">Reset</button>
       </div>
     </div>
   `;
@@ -107,8 +43,6 @@ function loadCardFlip() {
       text-align: center;
       color: white;
       border: 1px solid rgba(255, 255, 255, 0.1);
-      max-width: 800px;
-      margin: 0 auto;
     }
 
     .game-header {
@@ -129,14 +63,14 @@ function loadCardFlip() {
 
     .card-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       gap: 1rem;
-      max-width: 600px;
+      max-width: 800px;
       margin: 0 auto 2rem;
     }
 
     .card {
-      aspect-ratio: 1;
+      aspect-ratio: 2/3;
       perspective: 1000px;
       cursor: pointer;
     }
@@ -145,9 +79,8 @@ function loadCardFlip() {
       position: relative;
       width: 100%;
       height: 100%;
-      text-align: center;
-      transition: transform 0.6s;
       transform-style: preserve-3d;
+      transition: transform 0.6s;
     }
 
     .card.flipped .card-inner {
@@ -159,21 +92,20 @@ function loadCardFlip() {
       width: 100%;
       height: 100%;
       backface-visibility: hidden;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 2rem;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .card-front {
+      background: var(--primary);
+      border: 2px solid rgba(255, 255, 255, 0.1);
     }
 
     .card-back {
-      transform: rotateY(180deg);
-      background: var(--primary);
-    }
-
-    .card.matched .card-inner {
+      background: var(--warning);
       transform: rotateY(180deg);
     }
 
@@ -186,6 +118,11 @@ function loadCardFlip() {
       justify-content: center;
       gap: 1rem;
     }
+
+    #cardTimer {
+      color: var(--warning);
+      font-weight: bold;
+    }
   `;
   document.head.appendChild(styleSheet);
 
@@ -194,11 +131,13 @@ function loadCardFlip() {
   let pairs = 0;
   let flippedCards = [];
   let isPlaying = false;
-  let canFlip = true;
+  let timeLeft = 60;
+  let timerInterval;
 
   function updateUI() {
     document.getElementById('moves').textContent = moves;
     document.getElementById('pairs').textContent = pairs;
+    document.getElementById('cardTimer').textContent = timeLeft;
   }
 
   function shuffleCards() {
@@ -209,61 +148,71 @@ function loadCardFlip() {
     });
   }
 
+  function startTimer() {
+    timeLeft = 60;
+    updateUI();
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      updateUI();
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        isPlaying = false;
+        document.getElementById('startCardBtn').textContent = 'Try Again';
+        document.getElementById('startCardBtn').disabled = false;
+        awardCoins(pairs * 5);
+        showMessage('Time\'s up!', 'error');
+      }
+    }, 1000);
+  }
+
   function startGame() {
     moves = 0;
     pairs = 0;
     flippedCards = [];
     isPlaying = true;
-    canFlip = true;
     updateUI();
+    shuffleCards();
+    startTimer();
     
-    const cards = document.querySelectorAll('.card');
-    cards.forEach(card => {
+    document.querySelectorAll('.card').forEach(card => {
       card.classList.remove('flipped', 'matched');
     });
-    
-    shuffleCards();
   }
 
   function handleCardClick(card) {
-    if (!isPlaying || !canFlip || card.classList.contains('flipped') || card.classList.contains('matched')) return;
-    
+    if (!isPlaying || flippedCards.length >= 2 || card.classList.contains('flipped')) return;
+
     card.classList.add('flipped');
     flippedCards.push(card);
-    
+
     if (flippedCards.length === 2) {
-      canFlip = false;
       moves++;
       updateUI();
       
       const [card1, card2] = flippedCards;
-      const match = card1.querySelector('.card-back').textContent === card2.querySelector('.card-back').textContent;
-      
-      if (match) {
+      if (card1.dataset.card === card2.dataset.card) {
+        pairs++;
         card1.classList.add('matched');
         card2.classList.add('matched');
-        pairs++;
-        updateUI();
+        flippedCards = [];
         
-        if (pairs === 6) {
-          setTimeout(() => {
-            const coins = Math.max(100 - moves * 5, 10);
-            awardCoins(coins);
-            alert(`Congratulations! You won ${coins} coins!`);
-            returnToMenu();
-          }, 500);
+        if (pairs === 12) {
+          clearInterval(timerInterval);
+          isPlaying = false;
+          document.getElementById('startCardBtn').textContent = 'Play Again';
+          document.getElementById('startCardBtn').disabled = false;
+          const timeBonus = Math.max(timeLeft, 0);
+          const totalCoins = pairs * 5 + timeBonus;
+          awardCoins(totalCoins);
+          showMessage(`Congratulations! You won ${totalCoins} coins!`, 'success');
         }
       } else {
         setTimeout(() => {
           card1.classList.remove('flipped');
           card2.classList.remove('flipped');
+          flippedCards = [];
         }, 1000);
       }
-      
-      setTimeout(() => {
-        flippedCards = [];
-        canFlip = true;
-      }, 1000);
     }
   }
 
@@ -273,11 +222,6 @@ function loadCardFlip() {
 
   document.getElementById('startCardBtn').addEventListener('click', () => {
     document.getElementById('startCardBtn').disabled = true;
-    startGame();
-  });
-
-  document.getElementById('resetCardBtn').addEventListener('click', () => {
-    if (!usePlay()) return;
     startGame();
   });
 } 

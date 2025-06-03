@@ -719,71 +719,58 @@
 
     function showTutorial(game) {
       const tutorials = {
-        memoryMole: {
-          title: "How to Play Memory Mole",
-          content: `
-            <h2>How to Play Memory Mole</h2>
-            <p>Test your memory by following the sequence of moles that pop up!</p>
-            <ul>
-              <li>Watch carefully as the moles light up in a sequence</li>
-              <li>Click the moles in the same order they appeared</li>
-              <li>Each level adds one more mole to the sequence</li>
-              <li>Score points based on how many levels you complete</li>
-              <li>Make a mistake and the game ends</li>
-            </ul>
-            <p>Tip: Focus on the pattern rather than individual moles!</p>
-          `
-        },
-        numberWordle: {
-          title: "How to Play Number Wordle",
-          content: `
-            <h2>How to Play Number Wordle</h2>
-            <p>Guess the secret 4-digit number using logic and deduction!</p>
-            <ul>
-              <li>Enter a 4-digit number using the number pad</li>
-              <li>Green means the digit is correct and in the right position</li>
-              <li>Yellow means the digit is correct but in the wrong position</li>
-              <li>Red means the digit is not in the number</li>
-              <li>You have 6 attempts to guess the number</li>
-            </ul>
-            <p>Tip: Use the feedback from each guess to narrow down the possibilities!</p>
-          `
-        },
-        patternMatch: {
-          title: "How to Play Pattern Match",
-          content: `
-            <h2>How to Play Pattern Match</h2>
-            <p>Memorize and recreate the hidden color pattern!</p>
-            <ul>
-              <li>Watch as the cells light up in a sequence</li>
-              <li>Click the cells in the same order they appeared</li>
-              <li>Each level adds one more cell to the pattern</li>
-              <li>Score points based on how many levels you complete</li>
-              <li>Make a mistake and the game ends</li>
-            </ul>
-            <p>Tip: Try to remember the pattern as a whole rather than individual cells!</p>
-          `
-        },
-        cardFlip: {
-          title: "How to Play Card Flip Memory",
-          content: `
-            <h2>How to Play Card Flip Memory</h2>
-            <p>Match pairs of cards by remembering their positions!</p>
-            <ul>
-              <li>Click on cards to flip them over</li>
-              <li>Find matching pairs of cards</li>
-              <li>Cards stay face up when matched</li>
-              <li>Try to match all pairs in the fewest moves</li>
-              <li>Score more points for fewer moves</li>
-            </ul>
-            <p>Tip: Try to remember the positions of cards you've seen!</p>
-          `
-        }
+        memoryMole: `
+          <h3>🦔 Memory Mole</h3>
+          <p>Watch and remember the pattern of moles that appear in pairs!</p>
+          <ul>
+            <li>Two moles will light up at a time</li>
+            <li>Watch the "Watch" phase to memorize the pattern</li>
+            <li>When "Repeat" phase starts, click the moles in the same order</li>
+            <li>Each level adds more pairs to remember</li>
+            <li>Complete the pattern before time runs out!</li>
+            <li>Score points based on your level and speed</li>
+          </ul>
+        `,
+        cardFlip: `
+          <h3>🃏 Card Flip Memory</h3>
+          <p>Find matching pairs of cards before time runs out!</p>
+          <ul>
+            <li>Flip cards to find matching pairs</li>
+            <li>Match all 12 pairs to win</li>
+            <li>You have 60 seconds to complete the game</li>
+            <li>Earn bonus coins for remaining time</li>
+            <li>Try to complete with fewer moves for a better score</li>
+            <li>Watch out for the timer!</li>
+          </ul>
+        `,
+        numberWordle: `
+          <h3>🔢 Number Wordle</h3>
+          <p>Guess the 4-digit number with unique digits!</p>
+          <ul>
+            <li>Enter a 4-digit number with no repeating digits</li>
+            <li>Green means correct digit in correct position</li>
+            <li>Yellow means correct digit in wrong position</li>
+            <li>Red means digit is not in the number</li>
+            <li>You have 6 attempts to guess the number</li>
+            <li>Score more coins by using fewer attempts</li>
+          </ul>
+        `,
+        patternMatch: `
+          <h3>🌈 Pattern Match</h3>
+          <p>Remember and repeat the pattern of colors!</p>
+          <ul>
+            <li>Watch the pattern of colors light up</li>
+            <li>Click the colors in the same order</li>
+            <li>Each level adds one more color to the pattern</li>
+            <li>Make a mistake and you'll need to start over</li>
+            <li>Score points based on your level</li>
+          </ul>
+        `
       };
 
       const tutorial = tutorials[game];
       if (tutorial) {
-        document.getElementById('tutorialContent').innerHTML = tutorial.content;
+        document.getElementById('tutorialContent').innerHTML = tutorial;
         document.getElementById('tutorialModal').classList.add('show');
       }
     }
