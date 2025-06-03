@@ -213,6 +213,7 @@
   </div>
 
   <script>
+    const colors = ['red', 'blue'];
     let awardCoins = null;
     let level = 1;
     let totalCoins = 0;
@@ -222,7 +223,6 @@
     let isGameActive = false;
     let isShowingPattern = false;
     let perfectLevel = true;
-    const colors = ['red', 'blue', 'green', 'purple'];
 
     function initGrid() {
       const grid = document.getElementById('grid');
@@ -261,7 +261,7 @@
         isShowingPattern = false;
         isGameActive = true;
         document.getElementById('checkBtn').disabled = false;
-      }, 3000);
+      }, 4000);
     }
 
     function handleTileClick(event) {
@@ -284,8 +284,8 @@
 
       const isCorrect = pattern.every((color, idx) => color === userPattern[idx]);
       if (isCorrect) {
-        totalCoins += 12;
-        if (perfectLevel) totalCoins += 50;
+        totalCoins += 25;
+        if (perfectLevel) totalCoins += 100;
         level++;
         document.getElementById('coins').textContent = totalCoins;
         document.getElementById('level').textContent = level;
@@ -311,6 +311,9 @@
     document.getElementById('checkBtn').addEventListener('click', checkPattern);
 
     document.getElementById('restartBtn').addEventListener('click', () => {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'usePlay' }, '*');
+      }
       level = 1;
       totalCoins = 0;
       mistakes = 0;

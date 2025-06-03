@@ -303,18 +303,53 @@
       flex: 1;
       max-width: 200px;
     }
+
+    .error {
+      border-color: var(--error) !important;
+      background: rgba(239, 68, 68, 0.1) !important;
+    }
+    
+    .error:focus {
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+    }
+
+    .message {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      backdrop-filter: blur(5px);
+      max-width: 90%;
+      text-align: center;
+    }
+
+    .message.success {
+      background: rgba(34, 197, 94, 0.9);
+    }
+
+    .message.error {
+      background: rgba(239, 68, 68, 0.9);
+    }
+
+    .message.show {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>Logic Games </h1>
+      <h1>Logic Games</h1>
       <div class="user-info">
-        <span id="usernameDisplay"></span>
-        <span id="playsDisplay">Plays: 0</span>
+        <span id="playsDisplay">Plays: 5</span>
         <span id="coinsDisplay">Coins: 0</span>
         <button class="btn secondary" id="buyPlaysBtn">🎮 Buy Plays</button>
-        <button class="btn secondary" id="logoutBtn">🚪 Logout</button>
       </div>
     </div>
     <div class="games-grid" id="gamesGrid">
@@ -342,32 +377,16 @@
     <iframe id="gameFrame"></iframe>
   </div>
 
-  <div class="modal" id="loginModal">
-    <div class="modal-content">
-      <span class="close-btn" onclick="closeLoginModal()">×</span>
-      <h2>Sign In</h2>
-      <div class="login-form">
-        <input type="text" id="usernameInput" placeholder="Username" required>
-        <input type="text" id="passcodeInput" placeholder="4-digit Passcode" maxlength="4" required>
-        <div class="button-group">
-          <button class="btn" onclick="signIn()">Sign In</button>
-          <button class="btn secondary" onclick="closeLoginModal()">Cancel</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="modal" id="buyPlaysModal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeBuyPlaysModal()">×</span>
       <h2>Buy More Plays</h2>
       <div class="convert-form">
-        <p>Convert your tickets to plays:</p>
-        <p>1 ticket = 5 plays</p>
-        <input type="number" id="ticketCount" placeholder="Number of tickets to convert" min="1" value="1" required>
+        <p>Add more plays to your account:</p>
+        <input type="number" id="playCount" placeholder="Number of plays to add" min="1" value="1" required>
         <input type="password" id="adminPassword" placeholder="Admin password" required>
         <div>
-          <button class="btn" onclick="convertTicket()">Convert Tickets</button>
+          <button class="btn" onclick="addPlays()">Add Plays</button>
           <button class="btn secondary" onclick="closeBuyPlaysModal()">Cancel</button>
         </div>
       </div>
@@ -377,27 +396,22 @@
   <div class="message" id="message"></div>
 
   <script>
-    let currentUser = null;
+    let plays = 5;
+    let coins = 0;
 
-    function showLoginModal() {
-      document.getElementById('loginModal').style.display = 'flex';
-      document.getElementById('usernameInput').focus();
-    }
-
-    function closeLoginModal() {
-      document.getElementById('loginModal').style.display = 'none';
-      document.getElementById('usernameInput').value = '';
-      document.getElementById('passcodeInput').value = '';
+    function updateUI() {
+      document.getElementById('playsDisplay').textContent = `Plays: ${plays}`;
+      document.getElementById('coinsDisplay').textContent = `Coins: ${coins}`;
     }
 
     function showBuyPlaysModal() {
       document.getElementById('buyPlaysModal').style.display = 'flex';
-      document.getElementById('ticketCount').focus();
+      document.getElementById('playCount').focus();
     }
 
     function closeBuyPlaysModal() {
       document.getElementById('buyPlaysModal').style.display = 'none';
-      document.getElementById('ticketCount').value = '1';
+      document.getElementById('playCount').value = '1';
       document.getElementById('adminPassword').value = '';
     }
 
@@ -410,82 +424,28 @@
       }, 3000);
     }
 
-    async function signIn() {
-      const username = document.getElementById('usernameInput').value.trim();
-      const passcode = document.getElementById('passcodeInput').value.trim();
-      if (!username || !/^\d{4}$/.test(passcode)) {
-        showMessage('Please enter a valid username and 4-digit passcode', 'error');
+    async function loadGame(gameUrl) {
+      if (plays < 1) {
+        showMessage('No plays remaining!', 'error');
         return;
       }
-
-      try {
-        const response = await fetch('/api/signin', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, passcode })
-        });
-        const data = await response.json();
-        if (data.success) {
-          currentUser = data.user;
-          updateUserUI();
-          closeLoginModal();
-          showMessage('Signed in successfully!', 'success');
-        } else {
-          showMessage(data.message, 'error');
-        }
-      } catch (error) {
-        showMessage('Error signing in', 'error');
-      }
+      
+      plays--;
+      updateUI();
+      
+      const gameFrame = document.getElementById('gameFrame');
+      gameFrame.src = gameUrl;
+      gameFrame.style.display = 'block';
+      document.getElementById('gamesGrid').style.display = 'none';
+      gameFrame.contentWindow.postMessage({ type: 'setTimeout' }, '*');
     }
 
-    function updateUserUI() {
-      document.getElementById('usernameDisplay').textContent = currentUser.username;
-      document.getElementById('playsDisplay').textContent = `Plays: ${currentUser.plays}`;
-      document.getElementById('coinsDisplay').textContent = `Coins: ${currentUser.coins}`;
-      document.getElementById('gamesGrid').style.display = 'grid';
-      document.getElementById('gameFrame').style.display = 'none';
-    }
-
-    async function loadGame(gameUrl) {
-      if (!currentUser) return showLoginModal();
-      try {
-        const response = await fetch('/api/start-game', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: currentUser.username })
-        });
-        const data = await response.json();
-        if (data.success) {
-          if (data.noPlays) {
-            const gameFrame = document.getElementById('gameFrame');
-            gameFrame.src = gameUrl;
-            gameFrame.style.display = 'block';
-            document.getElementById('gamesGrid').style.display = 'none';
-            setTimeout(() => {
-              gameFrame.contentWindow.postMessage({ type: 'noPlays' }, '*');
-            }, 100);
-          } else {
-            currentUser = data.user;
-            updateUserUI();
-            const gameFrame = document.getElementById('gameFrame');
-            gameFrame.src = gameUrl;
-            gameFrame.style.display = 'block';
-            document.getElementById('gamesGrid').style.display = 'none';
-            gameFrame.contentWindow.postMessage({ type: 'setTimeout' }, '*');
-          }
-        } else {
-          showMessage(data.message, 'error');
-        }
-      } catch (error) {
-        showMessage('Error starting game', 'error');
-      }
-    }
-
-    async function convertTicket() {
-      const ticketCount = parseInt(document.getElementById('ticketCount').value);
+    async function addPlays() {
+      const playCount = parseInt(document.getElementById('playCount').value);
       const adminPassword = document.getElementById('adminPassword').value;
-      if (!Number.isInteger(ticketCount) || ticketCount <= 0) {
-        showMessage('Please enter a valid number of tickets', 'error');
+      
+      if (!Number.isInteger(playCount) || playCount <= 0) {
+        showMessage('Please enter a valid number of plays', 'error');
         return;
       }
       if (!adminPassword) {
@@ -494,60 +454,47 @@
       }
 
       try {
-        const response = await fetch('/api/convert-ticket', {
+        const response = await fetch('/api/add-plays', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: currentUser.username, ticketCount, adminPassword })
+          body: JSON.stringify({ playCount, adminPassword })
         });
         const data = await response.json();
         if (data.success) {
-          currentUser = data.user;
-          updateUserUI();
+          plays += playCount;
+          updateUI();
           closeBuyPlaysModal();
-          showMessage(`Converted ${ticketCount} ticket(s) to ${ticketCount * 5} plays!`, 'success');
+          showMessage(`Added ${playCount} plays!`, 'success');
         } else {
           showMessage(data.message, 'error');
         }
       } catch (error) {
-        showMessage('Error converting tickets', 'error');
+        showMessage('Error adding plays', 'error');
       }
     }
 
-    function logout() {
-      currentUser = null;
-      document.getElementById('usernameDisplay').textContent = '';
-      document.getElementById('playsDisplay').textContent = 'Plays: 0';
-      document.getElementById('coinsDisplay').textContent = 'Coins: 0';
-      document.getElementById('gamesGrid').style.display = 'grid';
-      document.getElementById('gameFrame').style.display = 'none';
-      document.getElementById('gameFrame').src = '';
-      showLoginModal();
-    }
-
     window.addEventListener('message', (event) => {
-      if (event.data && event.data.type === 'awardCoins' && currentUser) {
-        fetch('/api/award-coins', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            username: currentUser.username,
-            coins: event.data.coins
-          })
-        }).then(res => res.json()).then(data => {
-          if (data.success) {
-            currentUser = data.user;
-            updateUserUI();
-            showMessage(`Earned ${event.data.coins} coins!`, 'success');
-          }
-        });
+      if (event.data && event.data.type === 'awardCoins') {
+        coins += event.data.coins;
+        updateUI();
+        showMessage(`Earned ${event.data.coins} coins!`, 'success');
       } else if (event.data && event.data.type === 'gameOver') {
         document.getElementById('gameFrame').style.display = 'none';
         document.getElementById('gamesGrid').style.display = 'grid';
         document.getElementById('gameFrame').src = '';
+      } else if (event.data && event.data.type === 'usePlay') {
+        if (plays > 0) {
+          plays--;
+          updateUI();
+        } else {
+          showMessage('No plays remaining!', 'error');
+          document.getElementById('gameFrame').style.display = 'none';
+          document.getElementById('gamesGrid').style.display = 'grid';
+          document.getElementById('gameFrame').src = '';
+        }
       }
     });
 
-    document.getElementById('logoutBtn').addEventListener('click', logout);
     document.getElementById('buyPlaysBtn').addEventListener('click', showBuyPlaysModal);
 
     document.getElementById('buyPlaysModal').addEventListener('click', (e) => {
@@ -556,13 +503,7 @@
       }
     });
 
-    document.getElementById('loginModal').addEventListener('click', (e) => {
-      if (e.target === document.getElementById('loginModal')) {
-        closeLoginModal();
-      }
-    });
-
-    showLoginModal();
+    updateUI();
   </script>
 </body>
 </html>
